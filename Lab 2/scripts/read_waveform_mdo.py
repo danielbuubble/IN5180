@@ -85,7 +85,8 @@ if __name__ == "__main__":
         osc.write(f":MEASure:SOURce1 CHANnel{args.mdo_input_port_in}")
         osc.write(f":MEASure:SOURce2 CHANnel{args.mdo_input_port_out}")
         time.sleep(0.5)
-        phase_value = float(osc.query(":MEASure:phase?"))
+        phase_query_result = osc.query(":MEASure:phase?")
+        phase_value = float(phase_query_result) if phase_query_result.strip() != '?' else np.nan
 
         vpp_in.append(vpp_in_val)
         vpp_out.append(vpp_out_val)
