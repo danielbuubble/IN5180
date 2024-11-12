@@ -63,12 +63,12 @@ if __name__ == "__main__":
         # Measure input voltage
         osc.write(f":MEASure:SOURce1 CHANnel{args.mdo_input_port_in}")
         time.sleep(0.5)
-        vpp_in = float(osc.query(":MEASure:VPP?"))
+        vpp_in = float(osc.query(":MEASure:amplitude?"))
 
         # Measure output voltage
         osc.write(f":MEASure:SOURce1 CHANnel{args.mdo_input_port_out}")
         time.sleep(0.5)
-        vpp_out = float(osc.query(":MEASure:VPP?"))
+        vpp_out = float(osc.query(":MEASure:amplitude?"))
 
         # Compute gain and phase shift
         if vpp_in != 0:
