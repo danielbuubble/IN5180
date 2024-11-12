@@ -1,11 +1,12 @@
 import pyvisa
 import numpy as np
+import visa
 import matplotlib.pyplot as plt
 from scipy.signal import bode
 import argparse
 
 def exisiting_tool(lab_num, tool, socket_num):
-    fung = rm.open_resource(f"TCPIP::nano-slab-{lab_num}-{tool}.uio.no::{socket_num}::SOCKET")
+    fung = rm.open_resource("TCPIP::nano-slab-"+str(lab_num)+"-"+tool+".uio.no::"+str(socket_num)+"::SOCKET")
     fung.read_termination = '\n'
     if tool == "gpp":
         pass
