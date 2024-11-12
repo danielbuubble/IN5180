@@ -1,6 +1,5 @@
 import pyvisa
 import numpy as np
-import visa
 import matplotlib.pyplot as plt
 from scipy.signal import bode
 import argparse
@@ -36,7 +35,7 @@ def process_data(raw_data):
     
     return freqs, magnitudes, phases
 
-def main():
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Measure opamp frequency response")
     parser.add_argument("--slab_num", required=True, type=int, help="Lab space number")
     parser.add_argument("--mfg_output_port", required=True, type=int, help="MFG channel used")
@@ -128,6 +127,4 @@ def main():
     plt.legend()
     plt.grid(True)
     plt.show()
-
-if __name__ == "__main__":
-    main()
+    
