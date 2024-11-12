@@ -82,7 +82,8 @@ if __name__ == "__main__":
         osc.write(f":MEASure:SOURce1 CHANnel{args.mdo_input_port_in}")
         osc.write(f":MEASure:SOURce2 CHANnel{args.mdo_input_port_out}")
         time.sleep(0.5)
-        phase_shift[i] = float(osc.query(":MEASure:PHASe?"))
+        print('Phase difference: '+str(osc.query('measure:phase?')))
+        phase_shift[i] = osc.query(":MEASure:PHASe?")
         gain[i] = gain_value
         i += 1
 
