@@ -44,8 +44,8 @@ if __name__ == "__main__":
     rm.list_resources()
 
     # Connecting to instruments
-    mfg = existing_tool(rm, args.slab_num, "mfg", 1026)
-    osc = existing_tool(rm, args.slab_num, "mdo", 3000)
+    mfg = existing_tool(args.slab_num, "mfg", 1026)
+    osc = existing_tool(args.slab_num, "mdo", 3000)
 
     # Configure MFG
     mfg.write(f"OUTPUT{args.mfg_output_port}:LOAD INF")
