@@ -4,24 +4,14 @@ import time
 import argparse
 import matplotlib.pyplot as plt
 
-def existing_tool(lab_num, tool, socket_num):
-    fung = rm.open_resource("TCPIP::nano-slab-"+str(lab_num)+"-"+tool+".uio.no::"+str(socket_num)+"::SOCKET")
+def existing_tool(rm, lab_num, tool, socket_num):
+    fung = rm.open_resource(f"TCPIP::nano-slab-{lab_num}-{tool}.uio.no::{socket_num}::SOCKET")
     fung.read_termination = '\n'
     if tool != "gpp":
         fung.write_termination = '\n'
+    fung.timeout = 20000  # Increase timeout to 20 seconds
     print(fung.query('*IDN?'))
     return fung
-
-def process_data(raw_data, sampling_rate):
-    data = np.array(raw_data)
-    data_no_offset = data - np.mean(data)
-    window = np.hanning(len(data_no_offset))
-    windowed_data = data_no_offset * window
-    fft_result = np.fft.fft(windowed_data)
-    magnitudes = np.abs(fft_result[:len(fft_result)//2])
-    phases = np.unwrap(np.angle(fft_result[:len(fft_result)//2]))
-    freqs = np.fft.fftfreq(len(fft_result), d=1/sampling_rate)[:len(fft_result)//2]
-    return freqs, magnitudes, phases
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Measure opamp frequency response")
@@ -29,7 +19,6 @@ if __name__ == "__main__":
     parser.add_argument('--mfg_output_port', type=int, required=True, help='MFG output port')
     parser.add_argument('--mdo_input_port_in', type=int, required=True, help='MDO input channel for opamp input')
     parser.add_argument('--mdo_input_port_out', type=int, required=True, help='MDO input channel for opamp output')
-    parser.add_argument('--waveform_type', type=str, required=True, help='Waveform type, e.g., sine')
     parser.add_argument('--frequency_min', type=float, required=True, help='Minimum frequency')
     parser.add_argument('--frequency_max', type=float, required=True, help='Maximum frequency')
     parser.add_argument('--num_points', type=int, required=True, help='Number of sweep points')
@@ -42,12 +31,15 @@ if __name__ == "__main__":
     rm.list_resources()
 
     # Connecting to instruments
-    mfg = existing_tool(args.slab_num, "mfg", 1026)
-    osc = existing_tool(args.slab_num, "mdo", 3000)
+    mfg = existing_tool(rm, args.slab_num, "mfg", 1026)
+    osc = existing_tool(rm, args.slab_num, "mdo", 3000)
 
-    # Configure MFG
+    # Configure MFG as sine wave generator
     mfg.write(f"OUTPUT{args.mfg_output_port}:LOAD INF")
-    mfg.write(f"SOURCE{args.mfg_output_port}:APPLY:{args.waveform_type} {args.frequency_min},{args.amplitude},{args.offset}")
+    mfg.write(f"SOURCE{args.mfg_output_port}:FUNCTION SIN")
+    mfg.write(f"SOURCE{args.mfg_output_port}:VOLTAGE {args.amplitude}")
+    mfg.write(f"SOURCE{args.mfg_output_port}:VOLTAGE:OFFSET {args.offset}")
+    mfg.write(f"SOURCE{args.mfg_output_port}:FREQUENCY {args.frequency_min}")
     
     # Configure oscilloscope inputs
     osc.write(f":CHANNEL{args.mdo_input_port_in}:DISPLAY ON")
@@ -58,7 +50,6 @@ if __name__ == "__main__":
     frequencies = np.logspace(np.log10(args.frequency_min), np.log10(args.frequency_max), args.num_points)
     gain = []
     phase_shift = []
-    sampling_rate = 1e6  # Set your actual oscilloscope's sampling rate
 
     for freq in frequencies:
         mfg.write(f"SOURCE{args.mfg_output_port}:FREQUENCY {freq}")
@@ -69,28 +60,20 @@ if __name__ == "__main__":
         osc.write(":AUTOSCALE")
         time.sleep(1)  # Allow oscilloscope to autoscale
 
-        # Acquire waveforms
-        osc.write(f":WAVeform:SOURce CHANnel{args.mdo_input_port_in}")
-        osc.write(":WAVeform:FORMat ASCii")
-        osc.write(":WAVeform:PREAMBLE?")  # Check preamble information
-        time.sleep(0.5)  # Ensure command sequence is synchronized
-        input_waveform = osc.query(":WAVeform:DATA?")
-        input_data = list(map(float, input_waveform.split(',')))
+        # Measure input voltage
+        vpp_in = float(osc.query(f":MEASure:VPP? CHANnel{args.mdo_input_port_in}"))
 
-        osc.write(f":WAVeform:SOURce CHANnel{args.mdo_input_port_out}")
-        osc.write(":WAVeform:FORMat ASCii")
-        osc.write(":WAVeform:PREAMBLE?")  # Check preamble information
-        time.sleep(0.5)  # Ensure command sequence is synchronized
-        output_waveform = osc.query(":WAVeform:DATA?")
-        output_data = list(map(float, output_waveform.split(',')))
+        # Measure output voltage
+        vpp_out = float(osc.query(f":MEASure:VPP? CHANnel{args.mdo_input_port_out}"))
 
-        # Process data
-        freqs_in, mag_in, phase_in = process_data(input_data, sampling_rate)
-        freqs_out, mag_out, phase_out = process_data(output_data, sampling_rate)
+        # Compute gain and phase shift
+        if vpp_in != 0:
+            gain_value = 20 * np.log10(vpp_out / vpp_in)
+        else:
+            gain_value = 0
 
-        idx = np.argmin(np.abs(freqs_in - freq))
-        gain_value = 20 * np.log10(mag_out[idx] / mag_in[idx])
-        phase_value = (phase_out[idx] - phase_in[idx]) * 180 / np.pi
+        # Measure phase difference directly if the oscilloscope supports it
+        phase_value = float(osc.query(f":MEASure:PHASe? CHANnel{args.mdo_input_port_in},CHANnel{args.mdo_input_port_out}"))
 
         gain.append(gain_value)
         phase_shift.append(phase_value)
