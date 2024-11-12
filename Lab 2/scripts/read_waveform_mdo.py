@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     mfg = exisiting_tool(args.slab_num, "mfg", 1026)
     osc_in = exisiting_tool(args.slab_num, "mdo", 3000)
-    osc_out = exisiting_tool(args.slab_num, "mdo", 3001)
+    osc_out = exisiting_tool(args.slab_num, "mdo", 3000)
 
     # Configure MFG
     mfg.write(f"source{args.mfg_output_port}:apply sine {args.frequency_min},{args.amplitude},{args.offset}")
