@@ -38,7 +38,6 @@ if (__name__=="__main__"):
 
     #Setting up the MFG
     #Set otuput load of MFG to high impedance
-    mfg.write('output '+str(args.mfg_output_port)+':load inf')
 
     #Set signal for mfg:
     sweep_values = np.array([args.start_frequency *(args.stop_frequency/args.start_frequency)**(i/(args.steps-1)) for i in range(1, args.steps + 1)])
@@ -53,12 +52,13 @@ if (__name__=="__main__"):
     i = 0
     for x in sweep_values:
         #Set signal for mfg:
+        mfg.write('output '+str(args.mfg_output_port)+':load inf')
         mfg.write('source '+str(args.mfg_output_port)+':appl:sin '+str(x)+','+str(args.amplitude)+','+str(args.offset))
         mfg.write('SOURce1:PHASe 0')
         mfg.write('SOURce2:PHASe 0')
         print('Cnt: '+str(i)+' Frequency: '+str(x))
         #Wait for valid output from the mfg:
-        time.sleep(1)
+        time.sleep(5)
 
         #Input measurement
         osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
