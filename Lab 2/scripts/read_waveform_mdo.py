@@ -1,18 +1,18 @@
 import pyvisa
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.signal import bode
+from scipy.signal import find_peaks
 import time
 import argparse
 
-def exisiting_tool(lab_num, tool, socket_num):
+def existing_tool(lab_num, tool, socket_num):
     fung = rm.open_resource(f"TCPIP::nano-slab-{lab_num}-{tool}.uio.no::{socket_num}::SOCKET")
     fung.read_termination = '\n'
     fung.write_termination = '\n'
     print(fung.query('*IDN?'))
     return fung
 
-def process_data(raw_data):
+def process_data(raw_data, sampling_rate):
     # Convert raw data to numpy array if needed
     data = np.array(raw_data)
     
@@ -27,9 +27,9 @@ def process_data(raw_data):
     fft_result = np.fft.fft(windowed_data)
     
     # Get magnitudes and phases
-    freqs = np.fft.fftfreq(len(fft_result)) * sampling_rate
-    magnitudes = np.abs(fft_result)
-    phases = np.unwrap(np.angle(fft_result))
+    magnitudes = np.abs(fft_result[:len(fft_result)//2])  # single-sided spectrum
+    phases = np.unwrap(np.angle(fft_result[:len(fft_result)//2]))
+    freqs = np.fft.fftfreq(len(fft_result), d=1/sampling_rate)[:len(fft_result)//2]
     
     return freqs, magnitudes, phases
 
@@ -37,99 +37,93 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Measure opamp frequency response")
     parser.add_argument('--slab_num', type=int, required=True, help='Lab number')
     parser.add_argument('--mfg_output_port', type=int, required=True, help='MFG output port')
-    parser.add_argument('--mdo_input_port_in', type=int, required=True, help='MDO input port in')
-    parser.add_argument('--mdo_input_port_out', type=int, required=True, help='MDO input port out')
+    parser.add_argument('--mdo_input_port_in', type=int, required=True, help='MDO input channel for opamp input')
+    parser.add_argument('--mdo_input_port_out', type=int, required=True, help='MDO input channel for opamp output')
     parser.add_argument('--frequency_min', type=float, required=True, help='Minimum frequency')
     parser.add_argument('--frequency_max', type=float, required=True, help='Maximum frequency')
-    parser.add_argument('--num_points', type=int, required=True, help='Number of points')
-    parser.add_argument('--amplitude', type=float, required=True, help='Amplitude')
-    parser.add_argument('--offset', type=float, required=True, help='Offset')
+    parser.add_argument('--num_points', type=int, required=True, help='Number of sweep points')
+    parser.add_argument('--amplitude', type=float, required=True, help='Signal amplitude')
+    parser.add_argument('--offset', type=float, required=True, help='Signal offset')
     
     args = parser.parse_args()
 
     rm = pyvisa.ResourceManager()
     rm.list_resources()
 
-    mfg = exisiting_tool(args.slab_num, "mfg", 1026)
-    osc_in = exisiting_tool(args.slab_num, "mdo", 3000)
-    osc_out = exisiting_tool(args.slab_num, "mdo", 3000)
+    mfg = existing_tool(args.slab_num, "mfg", 1026)
+    osc = existing_tool(args.slab_num, "mdo", 3000)
 
     # Configure MFG
-    mfg.write(f"source{args.mfg_output_port}:apply sine {args.frequency_min},{args.amplitude},{args.offset}")
-    
+    mfg.write(f"source{args.mfg_output_port}:apply {args.waveform_type} {args.amplitude},{args.offset}")
+
     # Configure oscilloscope inputs
-    osc_in.write(f":input{args.mdo_input_port_in}:acquire off")
-    osc_in.write(f":input{args.mdo_input_port_in}:acquire on")
-    osc_out.write(f":input{args.mdo_input_port_out}:acquire off")
-    osc_out.write(f":input{args.mdo_input_port_out}:acquire on")
+    osc.write(f":CHANNEL{args.mdo_input_port_in}:DISPLAY ON")
+    osc.write(f":CHANNEL{args.mdo_input_port_out}:DISPLAY ON")
 
     # Perform sweep
     frequencies = np.logspace(np.log10(args.frequency_min), np.log10(args.frequency_max), args.num_points)
     
-    mag_data_in = np.zeros(len(frequencies))
-    phase_data_in = np.zeros(len(frequencies))
-    mag_data_out = np.zeros(len(frequencies))
-    phase_data_out = np.zeros(len(frequencies))
+    gain = []
+    phase_shift = []
 
     sampling_rate = 1e6  # Assuming 1 MHz sampling rate
 
     try:
-        # Wait for oscilloscope to be ready
-        time.sleep(2)
-
-        for i, freq in enumerate(frequencies):
+        for freq in frequencies:
             mfg.write(f"source{args.mfg_output_port}:frequency {freq}")
+            time.sleep(0.1)  # Allow signal to settle
             
-            while osc_in.query(":ACQuire"+str(args.mdo_input_port_in)+":STATe?") != "1":
-                print(f"Waiting for oscilloscope {args.mdo_input_port_in} to acquire data...")
-                time.sleep(0.1)
-            
-            header_in = osc_in.query(":ACQuire"+str(args.mdo_input_port_in)+":MEMory?")
-            data_in = osc_in.read_binary_values('float32')
-            
-            while osc_out.query(":ACQuire"+str(args.mdo_input_port_out)+":STATe?") != "1":
-                print(f"Waiting for oscilloscope {args.mdo_input_port_out} to acquire data...")
-                time.sleep(0.1)
-            
-            header_out = osc_out.query(":ACQuire"+str(args.mdo_input_port_out)+":MEMory?")
-            data_out = osc_out.read_binary_values('float32')
-            
-            freqs_in, magnitudes_in, phases_in = process_data(data_in)
-            mag_data_in[i] = magnitudes_in
-            phase_data_in[i] = phases_in
-            
-            freqs_out, magnitudes_out, phases_out = process_data(data_out)
-            mag_data_out[i] = magnitudes_out
-            phase_data_out[i] = phases_out
+            osc.write(":AUTOSCALE")
+            time.sleep(0.1)
 
-        w, mag_in = bode(frequencies, mag_data_in)
-        w, mag_out = bode(frequencies, mag_data_out)
-        
-        unity_gain_index_in = np.argmin(np.abs(mag_in))
-        unity_gain_freq_in = frequencies[unity_gain_index_in]
-        
-        phase_margin_in = 180 - np.max(phase_data_in) * 180 / np.pi
+            # Acquire waveforms
+            osc.write(f":WAVeform:SOURce CHANnel{args.mdo_input_port_in}")
+            osc.write(":WAVeform:FORMat ASCII")
+            input_waveform = osc.query(":WAVeform:DATA?")
+            input_data = list(map(float, input_waveform.split(',')))
 
-        w, mag_out = bode(frequencies, mag_data_out)
-        unity_gain_index_out = np.argmin(np.abs(mag_out))
-        unity_gain_freq_out = frequencies[unity_gain_index_out]
-        
-        phase_margin_out = 180 - np.max(phase_data_out) * 180 / np.pi
+            osc.write(f":WAVeform:SOURce CHANnel{args.mdo_input_port_out}")
+            osc.write(":WAVeform:FORMat ASCII")
+            output_waveform = osc.query(":WAVeform:DATA?")
+            output_data = list(map(float, output_waveform.split(',')))
 
-        plt.figure(figsize=(10,6))
-        plt.semilogx(frequencies, 20*np.log10(mag_in), label='Input Magnitude')
-        plt.semilogx(frequencies, phase_data_in*180/np.pi, label='Input Phase')
-        plt.semilogx(frequencies, 20*np.log10(mag_out), label='Output Magnitude')
-        plt.semilogx(frequencies, phase_data_out*180/np.pi, label='Output Phase')
-        plt.axvline(unity_gain_freq_in, color='r', linestyle='--', label=f'Input Unity Gain Frequency: {unity_gain_freq_in:.2f} Hz')
-        plt.axhline(-phase_margin_in, color='g', linestyle='--', label=f'Input Phase Margin: {phase_margin_in:.2f} degrees')
-        plt.axvline(unity_gain_freq_out, color='b', linestyle='--', label=f'Output Unity Gain Frequency: {unity_gain_freq_out:.2f} Hz')
-        plt.axhline(-phase_margin_out, color='m', linestyle='--', label=f'Output Phase Margin: {phase_margin_out:.2f} degrees')
-        plt.xlabel('Frequency [Hz]')
-        plt.ylabel('Magnitude [dB], Phase [degrees]')
-        plt.title('Opamp Frequency Response')
-        plt.legend()
-        plt.grid(True)
+            # Process data
+            freqs_in, mag_in, phase_in = process_data(input_data, sampling_rate)
+            freqs_out, mag_out, phase_out = process_data(output_data, sampling_rate)
+            
+            # Select the data at the current sweep frequency
+            idx = np.argmin(np.abs(freqs_in - freq))
+            gain_value = 20 * np.log10(mag_out[idx] / mag_in[idx])
+            phase_value = (phase_out[idx] - phase_in[idx]) * 180 / np.pi
+
+            gain.append(gain_value)
+            phase_shift.append(phase_value)
+
+        gain = np.array(gain)
+        phase_shift = np.array(phase_shift)
+
+        # Find unity gain frequency and phase margin
+        unity_gain_freq = frequencies[np.argmin(np.abs(gain))]
+        phase_margin = 180 + phase_shift[np.argmin(np.abs(gain))]
+
+        # Plot Bode plots
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+        ax1.semilogx(frequencies, gain, label='Gain')
+        ax1.set_title('Bode Plot')
+        ax1.set_xlabel('Frequency [Hz]')
+        ax1.set_ylabel('Gain [dB]')
+        ax1.axvline(unity_gain_freq, color='r', linestyle='--', label=f'Unity Gain Freq: {unity_gain_freq:.2f} Hz')
+        ax1.legend()
+        ax1.grid(True)
+
+        ax2.semilogx(frequencies, phase_shift, label='Phase Shift')
+        ax2.set_xlabel('Frequency [Hz]')
+        ax2.set_ylabel('Phase Shift [Degrees]')
+        ax2.axhline(phase_margin, color='g', linestyle='--', label=f'Phase Margin: {phase_margin:.2f} degrees')
+        ax2.legend()
+        ax2.grid(True)
+
+        plt.tight_layout()
         plt.show()
 
     except pyvisa.errors.VisaIOError as e:
