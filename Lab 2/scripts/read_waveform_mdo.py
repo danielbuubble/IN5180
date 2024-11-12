@@ -6,7 +6,7 @@ import time
 import argparse
 
 def exisiting_tool(lab_num, tool, socket_num):
-    fung = pyvisa.ResourceManager().open_resource(f"TCPIP::nano-slab-{lab_num}-{tool}.uio.no::{socket_num}::SOCKET")
+    fung = rm.open_resource(f"TCPIP::nano-slab-{lab_num}-{tool}.uio.no::{socket_num}::SOCKET")
     fung.read_termination = '\n'
     fung.write_termination = '\n'
     print(fung.query('*IDN?'))
@@ -35,10 +35,20 @@ def process_data(raw_data):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Measure opamp frequency response")
-    # ... (rest of the argument parser remains the same)
+    parser.add_argument('--slab_num', type=int, required=True, help='Lab number')
+    parser.add_argument('--mfg_output_port', type=int, required=True, help='MFG output port')
+    parser.add_argument('--mdo_input_port_in', type=int, required=True, help='MDO input port in')
+    parser.add_argument('--mdo_input_port_out', type=int, required=True, help='MDO input port out')
+    parser.add_argument('--frequency_min', type=float, required=True, help='Minimum frequency')
+    parser.add_argument('--frequency_max', type=float, required=True, help='Maximum frequency')
+    parser.add_argument('--num_points', type=int, required=True, help='Number of points')
+    parser.add_argument('--amplitude', type=float, required=True, help='Amplitude')
+    parser.add_argument('--offset', type=float, required=True, help='Offset')
+    
+    args = parser.parse_args()
 
     rm = pyvisa.ResourceManager()
-    print(rm.list_resources())
+    rm.list_resources()
 
     mfg = exisiting_tool(args.slab_num, "mfg", 1026)
     osc_in = exisiting_tool(args.slab_num, "mdo", 3000)
