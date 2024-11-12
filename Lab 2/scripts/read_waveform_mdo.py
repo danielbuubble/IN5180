@@ -5,12 +5,17 @@ import time
 import argparse
 
 def existing_tool(rm, lab_num, tool, socket_num):
-    resource_string = f"TCPIP::nano-slab-{lab_num}-{tool}.uio.no::{socket_num}::SOCKET"
-    fung = rm.open_resource(resource_string)
-    fung.read_termination = '\n'
-    fung.write_termination = '\n'
-    print(fung.query('*IDN?'))
-    return fung
+    try:
+        resource_string = f"TCPIP::nano-slab-{lab_num}-{tool}.uio.no::{socket_num}::SOCKET"
+        fung = rm.open_resource(resource_string)
+        fung.read_termination = '\n'
+        fung.write_termination = '\n'
+        fung.timeout = 10000  # Set a timeout of 10 seconds
+        print(fung.query('*IDN?'))
+        return fung
+    except pyvisa.errors.VisaIOError as e:
+        print(f"Error connecting to {tool} at {resource_string}: {e}")
+        exit(1)
 
 def process_data(raw_data, sampling_rate):
     data = np.array(raw_data)
@@ -35,12 +40,13 @@ if __name__ == "__main__":
     parser.add_argument('--num_points', type=int, required=True, help='Number of sweep points')
     parser.add_argument('--amplitude', type=float, required=True, help='Signal amplitude')
     parser.add_argument('--offset', type=float, required=True, help='Signal offset')
-    
+
     args = parser.parse_args()
 
     rm = pyvisa.ResourceManager()
     rm.list_resources()
 
+    # Connect to instruments
     mfg = existing_tool(rm, args.slab_num, "mfg", 1026)
     osc = existing_tool(rm, args.slab_num, "mdo", 3000)
 
@@ -65,6 +71,7 @@ if __name__ == "__main__":
             time.sleep(1)  # Allow signal to settle
 
             osc.write(":AUTOSCALE")
+            time.sleep(0.1)  # Allow the oscilloscope to autoscale
 
             # Acquire waveforms
             osc.write(f":WAVeform:SOURce CHANNEL{args.mdo_input_port_in}")
