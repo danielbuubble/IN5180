@@ -13,6 +13,12 @@ def existing_tool(rm, lab_num, tool, socket_num):
     print(fung.query('*IDN?'))
     return fung
 
+def calculate_gain(vpp_in, vpp_out):
+    for i in range(len(vpp_in)):
+        gain.append(20*np.log10(vpp_out[i]/vpp_in[i]))
+    return gain
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Measure opamp frequency response")
     parser.add_argument('--slab_num', type=int, required=True, help='Lab number')
@@ -48,8 +54,10 @@ if __name__ == "__main__":
 
     # Frequency sweep setup
     frequencies = np.logspace(np.log10(args.frequency_min), np.log10(args.frequency_max), args.num_points)
-    gain = []
+    vpp_in = []
+    vpp_out = []
     phase_shift = []
+    gain = []
 
     for freq in frequencies:
         mfg.write(f"SOURCE{args.mfg_output_port}:FREQUENCY {freq}")
@@ -63,18 +71,14 @@ if __name__ == "__main__":
         # Measure input voltage
         osc.write(f":MEASure:SOURce1 CHANnel{args.mdo_input_port_in}")
         time.sleep(0.5)
-        vpp_in = float(osc.query(":MEASure:amplitude?"))
+        vpp_in_val = float(osc.query(":MEASure:amplitude?"))
 
         # Measure output voltage
         osc.write(f":MEASure:SOURce1 CHANnel{args.mdo_input_port_out}")
         time.sleep(0.5)
-        vpp_out = float(osc.query(":MEASure:amplitude?"))
+        vpp_out_val = float(osc.query(":MEASure:amplitude?"))
 
-        # Compute gain and phase shift
-        if vpp_in != 0:
-            gain_value = 20 * np.log10(vpp_out / vpp_in)
-        else:
-            gain_value = 0
+        
 
         # Measure phase difference directly if the oscilloscope supports it
         # Measure phase difference
@@ -83,9 +87,11 @@ if __name__ == "__main__":
         time.sleep(0.5)
         phase_value = float(osc.query(":MEASure:PHASe?"))
 
-        gain.append(gain_value)
+        vpp_in.append(vpp_in_val)
+        vpp_out.append(vpp_out_val)
         phase_shift.append(phase_value)
 
+    gain = calculate_gain(vpp_in, vpp_out)
     gain = np.array(gain)
     phase_shift = np.array(phase_shift)
 
