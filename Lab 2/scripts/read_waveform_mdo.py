@@ -61,10 +61,12 @@ if __name__ == "__main__":
         time.sleep(1)  # Allow oscilloscope to autoscale
 
         # Measure input voltage
-        vpp_in = float(osc.query(f":MEASure:VPP? CHANnel{args.mdo_input_port_in}"))
+        osc.write(f":MEASure:SOURce1 CHANnel{args.mdo_input_port_in}")
+        vpp_in = float(osc.query(":MEASure:VPP?"))
 
         # Measure output voltage
-        vpp_out = float(osc.query(f":MEASure:VPP? CHANnel{args.mdo_input_port_out}"))
+        osc.write(f":MEASure:SOURce1 CHANnel{args.mdo_input_port_out}")
+        vpp_out = float(osc.query(":MEASure:VPP?"))
 
         # Compute gain and phase shift
         if vpp_in != 0:
@@ -73,7 +75,10 @@ if __name__ == "__main__":
             gain_value = 0
 
         # Measure phase difference directly if the oscilloscope supports it
-        phase_value = float(osc.query(f":MEASure:PHASe? CHANnel{args.mdo_input_port_in},CHANnel{args.mdo_input_port_out}"))
+        # Measure phase difference
+        osc.write(f":MEASure:SOURce1 CHANnel{args.mdo_input_port_in}")
+        osc.write(f":MEASure:SOURce2 CHANnel{args.mdo_input_port_out}")
+        phase_value = float(osc.query(":MEASure:PHASe?"))
 
         gain.append(gain_value)
         phase_shift.append(phase_value)
