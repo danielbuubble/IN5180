@@ -44,6 +44,8 @@ def main():
     parser.add_argument("--frequency_min", required=True, type=float, help="Minimum frequency")
     parser.add_argument("--frequency_max", required=True, type=float, help="Maximum frequency")
     parser.add_argument("--num_points", required=True, type=int, help="Number of frequency points")
+    parser.add_argument("--amplitude", required=False, type=float, default=100, help="Amplitude of input signal (default: 100)")
+    parser.add_argument("--offset", required=False, type=float, default=0, help="Offset of input signal (default: 0)")
     
     args = parser.parse_args()
 
@@ -55,8 +57,8 @@ def main():
     osc_out = exisiting_tool(args.slab_num, "mdo", 3001)
 
     # Configure MFG
-    mfg.write(f"source{args.mfg_output_port}:apply sine {args.frequency_min},{100},0")
-
+    mfg.write(f"source{args.mfg_output_port}:apply sine {args.frequency_min},{args.amplitude},{args.offset}")
+    
     # Configure oscilloscope inputs
     osc_in.write(f":input{args.mdo_input_port_in}:acquire off")
     osc_in.write(f":input{args.mdo_input_port_in}:acquire on")
