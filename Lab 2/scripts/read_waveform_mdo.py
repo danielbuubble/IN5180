@@ -1,8 +1,8 @@
 import pyvisa
 import numpy as np
-import matplotlib.pyplot as plt
 import time
 import argparse
+import matplotlib.pyplot as plt
 
 def existing_tool(rm, lab_num, tool, socket_num):
     try:
@@ -46,41 +46,47 @@ if __name__ == "__main__":
     rm = pyvisa.ResourceManager()
     rm.list_resources()
 
-    # Connect to instruments
+    # Connecting to instruments
     mfg = existing_tool(rm, args.slab_num, "mfg", 1026)
     osc = existing_tool(rm, args.slab_num, "mdo", 3000)
 
     # Configure MFG
-    mfg.write(f"SOURCE{args.mfg_output_port}:FUNCTION {args.waveform_type}")
-    mfg.write(f"SOURCE{args.mfg_output_port}:VOLTAGE {args.amplitude}")
-    mfg.write(f"SOURCE{args.mfg_output_port}:VOLTAGE:OFFSET {args.offset}")
+    mfg.write(f"OUTPUT{args.mfg_output_port}:LOAD INF")
+    mfg.write(f"SOURCE{args.mfg_output_port}:APPLY:{args.waveform_type} {args.frequency_min},{args.amplitude},{args.offset}")
     
     # Configure oscilloscope inputs
     osc.write(f":CHANNEL{args.mdo_input_port_in}:DISPLAY ON")
     osc.write(f":CHANNEL{args.mdo_input_port_out}:DISPLAY ON")
     osc.write(":TIMEBASE:SCALE AUTO")
-    
+
+    # Frequency sweep setup
     frequencies = np.logspace(np.log10(args.frequency_min), np.log10(args.frequency_max), args.num_points)
     gain = []
     phase_shift = []
-    sampling_rate = 1e6  # Adjust according to your actual oscilloscope's setting
+    sampling_rate = 1e6  # Set your actual oscilloscope's sampling rate
 
     try:
         for freq in frequencies:
             mfg.write(f"SOURCE{args.mfg_output_port}:FREQUENCY {freq}")
-            time.sleep(1)  # Allow signal to settle
+            # Wait for output signal to settle
+            time.sleep(2)  # Adjust this delay as necessary
 
+            # Autoscale oscilloscope
             osc.write(":AUTOSCALE")
-            time.sleep(0.1)  # Allow the oscilloscope to autoscale
+            time.sleep(1)  # Allow oscilloscope to autoscale
 
             # Acquire waveforms
-            osc.write(f":WAVeform:SOURce CHANNEL{args.mdo_input_port_in}")
-            osc.write(":WAVeform:FORMat ASCII")
+            osc.write(f":WAVeform:SOURce CHANnel{args.mdo_input_port_in}")
+            osc.write(":WAVeform:FORMat ASCii")
+            osc.write(":WAVeform:PREAMBLE?")  # Check preamble information
+            time.sleep(0.5)  # Ensure command sequence is synchronized
             input_waveform = osc.query(":WAVeform:DATA?")
             input_data = list(map(float, input_waveform.split(',')))
 
-            osc.write(f":WAVeform:SOURce CHANNEL{args.mdo_input_port_out}")
-            osc.write(":WAVeform:FORMat ASCII")
+            osc.write(f":WAVeform:SOURce CHANnel{args.mdo_input_port_out}")
+            osc.write(":WAVeform:FORMat ASCii")
+            osc.write(":WAVeform:PREAMBLE?")  # Check preamble information
+            time.sleep(0.5)  # Ensure command sequence is synchronized
             output_waveform = osc.query(":WAVeform:DATA?")
             output_data = list(map(float, output_waveform.split(',')))
 
