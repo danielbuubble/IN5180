@@ -51,11 +51,9 @@ if (__name__=="__main__"):
 
     i = 0
     for x in sweep_values:
+        mfg.write('output'+str(args.mfg_output_port)+':load inf')
         #Set signal for mfg:
-        mfg.write('output '+str(args.mfg_output_port)+':load inf')
-        mfg.write('source '+str(args.mfg_output_port)+':appl:sin '+str(x)+','+str(args.amplitude)+','+str(args.offset))
-        mfg.write('SOURce1:PHASe 0')
-        mfg.write('SOURce2:PHASe 0')
+        mfg.write('source'+str(args.mfg_output_port)+':appl:sin '+str(x)+','+str(args.amplitude)+','+str(args.offset))
         print('Cnt: '+str(i)+' Frequency: '+str(x))
         #Wait for valid output from the mfg:
         time.sleep(5)
