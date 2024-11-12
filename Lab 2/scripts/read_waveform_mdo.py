@@ -35,17 +35,7 @@ def process_data(raw_data):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Measure opamp frequency response")
-    parser.add_argument("--slab_num", required=True, type=int, help="Lab space number")
-    parser.add_argument("--mfg_output_port", required=True, type=int, help="MFG channel used")
-    parser.add_argument("--mdo_input_port_in", required=True, type=int, help="MD0 input channel for input signal")
-    parser.add_argument("--mdo_input_port_out", required=True, type=int, help="MD0 input channel for output signal")
-    parser.add_argument("--frequency_min", required=True, type=float, help="Minimum frequency")
-    parser.add_argument("--frequency_max", required=True, type=float, help="Maximum frequency")
-    parser.add_argument("--num_points", required=True, type=int, help="Number of frequency points")
-    parser.add_argument("--amplitude", required=False, type=float, default=100, help="Amplitude of input signal (default: 100)")
-    parser.add_argument("--offset", required=False, type=float, default=0, help="Offset of input signal (default: 0)")
-    
-    args = parser.parse_args()
+    # ... (rest of the argument parser remains the same)
 
     rm = pyvisa.ResourceManager()
     print(rm.list_resources())
@@ -84,15 +74,15 @@ if __name__ == "__main__":
                 print(f"Waiting for oscilloscope {args.mdo_input_port_in} to acquire data...")
                 time.sleep(0.1)
             
-            header = osc_in.query(":ACQuire"+str(args.mdo_input_port_in)+":MEMory?")
-            data_in = osc_in.query("DISP:WAV? DAT:ASC")
+            header_in = osc_in.query(":ACQuire"+str(args.mdo_input_port_in)+":MEMory?")
+            data_in = osc_in.read_binary_values('float32')
             
             while osc_out.query(":ACQuire"+str(args.mdo_input_port_out)+":STATe?") != "1":
                 print(f"Waiting for oscilloscope {args.mdo_input_port_out} to acquire data...")
                 time.sleep(0.1)
             
-            header = osc_out.query(":ACQuire"+str(args.mdo_input_port_out)+":MEMory?")
-            data_out = osc_out.query("DISP:WAV? DAT:ASC")
+            header_out = osc_out.query(":ACQuire"+str(args.mdo_input_port_out)+":MEMory?")
+            data_out = osc_out.read_binary_values('float32')
             
             freqs_in, magnitudes_in, phases_in = process_data(data_in)
             mag_data_in[i] = magnitudes_in
