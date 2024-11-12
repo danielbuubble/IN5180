@@ -48,10 +48,9 @@ if __name__ == "__main__":
 
     # Frequency sweep setup
     frequencies = np.logspace(np.log10(args.frequency_min), np.log10(args.frequency_max), args.num_points)
-    gain = np.empty(frequencies.size)
-    phase_shift = np.empty(frequencies.size)
+    gain = []
+    phase_shift = []
 
-    i = 0
     for freq in frequencies:
         mfg.write(f"SOURCE{args.mfg_output_port}:FREQUENCY {freq}")
         # Wait for output signal to settle
@@ -82,14 +81,13 @@ if __name__ == "__main__":
         osc.write(f":MEASure:SOURce1 CHANnel{args.mdo_input_port_in}")
         osc.write(f":MEASure:SOURce2 CHANnel{args.mdo_input_port_out}")
         time.sleep(0.5)
-        print('Phase difference: '+str(osc.query('measure:phase?')))
-        phase_shift[i] = osc.query(":MEASure:PHASe?")
-        gain[i] = gain_value
-        i += 1
+        phase_value = float(osc.query(":MEASure:PHASe?"))
 
-        
+        gain.append(gain_value)
+        phase_shift.append(phase_value)
 
-    
+    gain = np.array(gain)
+    phase_shift = np.array(phase_shift)
 
     unity_gain_freq = frequencies[np.argmin(np.abs(gain))]
     phase_margin = 180 + np.interp(unity_gain_freq, frequencies, phase_shift)
