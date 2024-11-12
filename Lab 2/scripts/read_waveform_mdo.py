@@ -4,18 +4,15 @@ import time
 import argparse
 import matplotlib.pyplot as plt
 
-def existing_tool(rm, lab_num, tool, socket_num):
-    try:
-        resource_string = f"TCPIP::nano-slab-{lab_num}-{tool}.uio.no::{socket_num}::SOCKET"
-        fung = rm.open_resource(resource_string)
-        fung.read_termination = '\n'
+def existing_tool(lab_num,tool,soccet_num):
+    fung = rm.open_resource("TCPIP::nano-slab-"+str(lab_num)+"-"+tool+".uio.no::"+str(soccet_num)+"::SOCKET")
+    fung.read_termination = '\n'
+    if(tool == "gpp"):
+        pass 
+    else:
         fung.write_termination = '\n'
-        fung.timeout = 10000  # Set a timeout of 10 seconds
-        print(fung.query('*IDN?'))
-        return fung
-    except pyvisa.errors.VisaIOError as e:
-        print(f"Error connecting to {tool} at {resource_string}: {e}")
-        exit(1)
+    print(fung.query('*IDN?'))
+    return fung
 
 def process_data(raw_data, sampling_rate):
     data = np.array(raw_data)
