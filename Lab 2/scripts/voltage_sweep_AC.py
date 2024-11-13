@@ -62,6 +62,8 @@ if __name__ == "__main__":
         osc.write(':measure:source1 CH'+str(args.mdo_input_port_in))
         #in_freq_values[i] = osc.write(':measure:frequency?')
         #in_amp_values[i] = osc.write(':measure:amplitude?')
+        print(f'Input frequency: {osc.query(":measure:frequency?")}')
+        print(f'Input amplitude: {osc.query(":measure:amplitude?")}')
         time.sleep(0.5)
 
         #Output measurement
@@ -69,7 +71,10 @@ if __name__ == "__main__":
         osc.write(':measure:source2 CH'+str(args.mdo_input_port_out))
         #out_freq_values[i] = osc.write(':measure:frequency?')
         #out_amp_values[i] = osc.write(':measure:amplitude?')
+        print(f'Output frequency: {osc.query(":measure:frequency?")}')
+        print(f'Output amplitude: {osc.query(":measure:amplitude?")}')
         time.sleep(0.5)
+
 
         #Phase difference measurement:
         osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
