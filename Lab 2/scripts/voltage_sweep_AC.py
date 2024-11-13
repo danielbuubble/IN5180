@@ -49,12 +49,12 @@ if __name__ == "__main__":
     mfg.write(f'SOURCE{args.mfg_output_port}:SWEEP:SPACING LOG')
     mfg.write(f'SOURCE{args.mfg_output_port}:SWEEP:TIME {args.sweep_time}')
     mfg.write(f'SOURCE{args.mfg_output_port}:SWEEP:STATE ON')  # Correct command to start sweep
-    mfg.write(f'OUTPUT{args.mfg_output_port} ON')  # Enable output
+    #mfg.write(f'OUTPUT{args.mfg_output_port} ON')  # Enable output
 
     # Acquire data at each step
     for i in range(num_steps):
         # Wait for autoscale to finish
-        osc.write('AUTORSET?')
+        #osc.write('AUTORSET?')
         time.sleep((args.sweep_time / num_steps)/2)
 
         # Set MDO measurements for input
