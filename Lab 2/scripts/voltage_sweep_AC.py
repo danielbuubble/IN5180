@@ -29,7 +29,7 @@ if __name__ == "__main__":
     rm = pyvisa.ResourceManager()
     rm.list_resources()
 
-    mfg = exisiting_tool(args.slab_num, "mfg", 1026)
+    #mfg = exisiting_tool(args.slab_num, "mfg", 1026)
     osc = exisiting_tool(args.slab_num, "mdo", 3000)
 
     # Prepare arrays to store measurements
@@ -91,8 +91,8 @@ if __name__ == "__main__":
         i += 1
 
     # Sweep Off
-    mfg.write('SOURCE'+str(args.mfg_output_port)+':FREQ:SWEEP:STATE OFF')
-    mfg.write('OUTPUT'+str(args.mfg_output_port)+ 'OFF')
+    #mfg.write('SOURCE'+str(args.mfg_output_port)+':FREQ:SWEEP:STATE OFF')
+    #mfg.write('OUTPUT'+str(args.mfg_output_port)+ 'OFF')
 
     # Plot or process data
     plt.plot(in_freq_values, phase_shift, label="Phase Shift")
