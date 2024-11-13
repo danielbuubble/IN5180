@@ -55,12 +55,12 @@ if (__name__ == "__main__"):
     
     
     #Phase difference measurement:
-    osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
-    osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
-    osc.write(':measure:source'+str(args.mdo_input_port_in)+ ' CH'+str(args.mdo_input_port_in)) #eg CH1
-    osc.write(':measure:source2 CH'+str(args.mdo_input_port_out)) #eg CH2
+    #osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
+    #osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
+    #osc.write(':measure:source'+str(args.mdo_input_port_in)+ ' CH'+str(args.mdo_input_port_in)) #eg CH1
+    #osc.write(':measure:source2 CH'+str(args.mdo_input_port_out)) #eg CH2
     
-    print('Phase difference: '+str(osc.query('measure:phase?')))
+    #print('Phase difference: '+str(osc.query('measure:phase?')))
 
     
     '''
