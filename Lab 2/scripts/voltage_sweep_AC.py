@@ -4,6 +4,12 @@ import time
 import argparse
 import matplotlib.pyplot as plt
 
+def safe_query_float(resource, query):
+    try:
+        return float(resource.query(query))
+    except ValueError:
+        return np.nan
+
 def exisiting_tool(lab_num, tool, socket_num):
     resource = rm.open_resource(f"TCPIP::nano-slab-{lab_num}-{tool}.uio.no::{socket_num}::SOCKET")
     resource.read_termination = '\n'
@@ -61,8 +67,8 @@ if __name__ == "__main__":
         # Set MDO measurements for input
         osc.write(f':CHANnel{args.mdo_input_port_in}:DISPlay ON')
         osc.write(f':measure:source1 CH{args.mdo_input_port_in}')
-        in_freq_values[i] = osc.query('measure:frequency?')
-        in_amp_values[i] = osc.query(':measure:amplitude?')
+        in_freq_values[i] = safe_query_float(osc, ':MEASURE:FREQUENCY?')
+        in_amp_values[i] = safe_query_float(osc, ':MEASURE:AMPLITUDE?')
         print(f'Cnt: {i} Frequency: {in_freq_values[i]}')
         time.sleep(0.5)
         if in_freq_values[i] > highest_freq:
@@ -71,8 +77,8 @@ if __name__ == "__main__":
         # Set MDO measurements for output
         osc.write(f':CHANnel{args.mdo_input_port_out}:DISPlay ON')
         osc.write(f':measure:source2 CH{args.mdo_input_port_out}')
-        out_freq_values[i] = osc.write('measure:frequency?')
-        out_amp_values[i] = osc.write(':measure:amplitude?')
+        out_freq_values[i] = safe_query_float(osc, ':MEASURE:FREQUENCY?')
+        out_amp_values[i] = safe_query_float(osc, ':MEASURE:AMPLITUDE?')
 
         print(f'Amp_in: {in_amp_values[i]} Amp_out: {out_amp_values[i]}')
         time.sleep(0.5)
@@ -83,7 +89,7 @@ if __name__ == "__main__":
         osc.write(':measure:source1 CH'+str(args.mdo_input_port_in)) #eg CH1
         osc.write(':measure:source2 CH'+str(args.mdo_input_port_out)) #eg CH2
     
-        phase_shift[i] = osc.query('measure:phase?')
+        phase_shift[i] = safe_query_float(osc, ':MEASURE:PHASE?')
 
         i += 1
         time.sleep((args.sweep_time / num_steps) / 2)  # Wait for the next step
