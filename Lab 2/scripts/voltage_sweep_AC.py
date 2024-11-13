@@ -4,81 +4,76 @@ import time
 import argparse
 import matplotlib.pyplot as plt
 
-def exisiting_tool(lab_num,tool,socket_num):
-    fung = rm.open_resource("TCPIP::nano-slab-"+str(lab_num)+"-"+tool+".uio.no::"+str(socket_num)+"::SOCKET")
-    fung.read_termination = '\n'
-    if(tool == "gpp"):
-        pass 
-    else:
-        fung.write_termination = '\n'
-    print(fung.query('*IDN?'))
-    return fung
+def exisiting_tool(lab_num, tool, socket_num):
+    resource = rm.open_resource(f"TCPIP::nano-slab-{lab_num}-{tool}.uio.no::{socket_num}::SOCKET")
+    resource.read_termination = '\n'
+    if tool != "gpp":
+        resource.write_termination = '\n'
+    print(resource.query('*IDN?'))
+    return resource
 
-if (__name__=="__main__"):
-    #Parser for the input arguments
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Setting a frequency sweep with the MFG and reading it with the MDO")
     parser.add_argument("--slab_num", required=True, type=int, help="Lab space number between 1 and 6")
-    parser.add_argument("--mfg_output_port", required=True, type=int, help="Which of the MFG channels is used, 1 or 2")
-    parser.add_argument("--mdo_input_port_in", required=True, type=int, help="Oscilloscope  channel to read the input")
-    parser.add_argument("--mdo_input_port_out", required=True, type=int, help="Oscilloscope channel to read the output")
-    parser.add_argument("--start_frequency", required=True, type=float, help="Start frequency of the sweep for the MFG")
-    parser.add_argument("--stop_frequency", required=True, type=float, help="Stop frequency of the sweep for the MFG")
-    parser.add_argument("--steps", required=True, type=int, help="Number of steps in the frequency sweep")
-    parser.add_argument("--amplitude", required=True, type=float, help="Amplitude of the signal")
-    parser.add_argument("--offset", required=True, type=float, help="Offset of the signal")
+    parser.add_argument("--mfg_output_port", required=True, type=int, help="MFG output port, 1 or 2")
+    parser.add_argument("--mdo_input_port_in", required=True, type=int, help="MDO input channel for input signal")
+    parser.add_argument("--mdo_input_port_out", required=True, type=int, help="MDO input channel for output signal")
+    parser.add_argument("--start_frequency", required=True, type=float, help="Sweep start frequency")
+    parser.add_argument("--stop_frequency", required=True, type=float, help="Sweep stop frequency")
+    parser.add_argument("--sweep_time", required=True, type=float, help="Total sweep duration in seconds")
+    parser.add_argument("--amplitude", required=True, type=float, help="Signal amplitude")
+    parser.add_argument("--offset", required=True, type=float, help="Signal offset")
 
     args = parser.parse_args()
 
-    #Invoking the resources
     rm = pyvisa.ResourceManager()
-    rm.list_resources()
+    mfg = exisiting_tool(args.slab_num, "mfg", 1026)
+    osc = exisiting_tool(args.slab_num, "mdo", 3000)
 
-    mfg = exisiting_tool(args.slab_num,"mfg",1026)
-    osc = exisiting_tool(args.slab_num,"mdo",3000)
+    # Configure the MFG Sweep
+    mfg.write(f'OUTPUT{args.mfg_output_port}:LOAD INF')
+    mfg.write(f'SOURCE{args.mfg_output_port}:APPL:SIN {args.start_frequency},{args.amplitude},{args.offset}')
+    mfg.write(f'SOURCE{args.mfg_output_port}:FREQ:START {args.start_frequency}')
+    mfg.write(f'SOURCE{args.mfg_output_port}:FREQ:STOP {args.stop_frequency}')
+    mfg.write(f'SOURCE{args.mfg_output_port}:FREQ:SWEEP:TIME {args.sweep_time}')
+    mfg.write(f'SOURCE{args.mfg_output_port}:FREQ:MODE SWEEP')
 
-    #Setting up the MFG
-    #Set otuput load of MFG to high impedance
+    # Start Sweep
+    mfg.write(f'OUTPUT{args.mfg_output_port} ON')
+    mfg.write(f'SOURCE{args.mfg_output_port}:FREQ:SWEEP:STATE ON')
 
-    #Set signal for mfg:
-    sweep_values = np.array([args.start_frequency *(args.stop_frequency/args.start_frequency)**(i/(args.steps-1)) for i in range(1, args.steps + 1)])
+    # Prepare arrays to store measurements
+    num_steps = int(args.sweep_time * 10)  # Adjust as needed for sampling rate
+    in_freq_values = np.empty(num_steps)
+    in_amp_values = np.empty(num_steps)
+    out_freq_values = np.empty(num_steps)
+    out_amp_values = np.empty(num_steps)
+    phase_shift = np.empty(num_steps)
 
-    in_freq_values = np.empty(sweep_values.size)
-    in_amp_values = np.empty(sweep_values.size)
-    out_freq_values = np.empty(sweep_values.size)
-    out_amp_values = np.empty(sweep_values.size)
-    phase_shift = np.empty(sweep_values.size)
-    print('Number of steps: '+str(sweep_values.size))
+    # Acquire data at each step
+    for i in range(num_steps):
+        # Set MDO measurements for input
+        osc.write(f':MEASURE:SOURCE1 CH{args.mdo_input_port_in}')
+        in_freq_values[i] = float(osc.query(':MEASURE:FREQUENCY?'))
+        in_amp_values[i] = float(osc.query(':MEASURE:AMPLITUDE?'))
 
-    i = 0
-    for x in sweep_values:
-        mfg.write('output'+str(args.mfg_output_port)+':load inf')
-        #Set signal for mfg:
-        mfg.write('source'+str(args.mfg_output_port)+':appl:sin '+str(x)+','+str(args.amplitude)+','+str(args.offset))
-        print('Cnt: '+str(i)+' Frequency: '+str(x))
-        #Wait for valid output from the mfg:
-        time.sleep(5)
+        # Set MDO measurements for output
+        osc.write(f':MEASURE:SOURCE2 CH{args.mdo_input_port_out}')
+        out_freq_values[i] = float(osc.query(':MEASURE:FREQUENCY?'))
+        out_amp_values[i] = float(osc.query(':MEASURE:AMPLITUDE?'))
 
-        #Input measurement
-        osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
-        osc.write(':measure:source1 CH'+str(args.mdo_input_port_in))
-        in_freq_values[i] = osc.write(':measure:frequency?')
-        in_amp_values[i] = osc.write(':measure:amplitude?')
-        time.sleep(0.5)
+        # Measure phase shift
+        phase_shift[i] = float(osc.query(':MEASURE:PHASE?'))
+        
+        time.sleep(args.sweep_time / num_steps)  # Wait for the next step
 
-        #Output measurement
-        osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
-        osc.write(':measure:source2 CH'+str(args.mdo_input_port_out))
-        out_freq_values[i] = osc.write(':measure:frequency?')
-        out_amp_values[i] = osc.write(':measure:amplitude?')
-        time.sleep(0.5)
+    # Sweep Off
+    mfg.write(f'SOURCE{args.mfg_output_port}:FREQ:SWEEP:STATE OFF')
+    mfg.write(f'OUTPUT{args.mfg_output_port} OFF')
 
-        #Phase difference measurement:
-        osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
-        osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
-        osc.write(':measure:source1 CH'+str(args.mdo_input_port_in)) #eg CH1
-        osc.write(':measure:source2 CH'+str(args.mdo_input_port_out)) #eg CH2
-        phase_shift[i] = osc.write('measure:phase?')
-        time.sleep(0.5)
-        i = i + 1
-    
-    print(phase_shift)
+    # Plot or process data
+    plt.plot(in_freq_values, phase_shift, label="Phase Shift")
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel("Phase Shift (degrees)")
+    plt.legend()
+    plt.show()
