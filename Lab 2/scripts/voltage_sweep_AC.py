@@ -27,9 +27,21 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     rm = pyvisa.ResourceManager()
+    rm.list_resources()
+    
     mfg = exisiting_tool(args.slab_num, "mfg", 1026)
     osc = exisiting_tool(args.slab_num, "mdo", 3000)
 
+    # Prepare arrays to store measurements
+    num_steps = int(args.sweep_time * 10)  # Adjust as needed for sampling rate
+    in_freq_values = np.empty(num_steps)
+    in_amp_values = np.empty(num_steps)
+    out_freq_values = np.empty(num_steps)
+    out_amp_values = np.empty(num_steps)
+    phase_shift = np.empty(num_steps)
+    print(f'Number of steps: {num_steps}')
+
+    i = 0
     # Configure the MFG Sweep
     mfg.write(f'OUTPUT{args.mfg_output_port}:LOAD INF')
     mfg.write(f'SOURCE{args.mfg_output_port}:APPL:SIN {args.start_frequency},{args.amplitude},{args.offset}')
@@ -42,22 +54,13 @@ if __name__ == "__main__":
     mfg.write(f'OUTPUT{args.mfg_output_port} ON')
     mfg.write(f'SOURCE{args.mfg_output_port}:FREQ:SWEEP:STATE ON')
 
-    # Prepare arrays to store measurements
-    num_steps = int(args.sweep_time * 10)  # Adjust as needed for sampling rate
-    in_freq_values = np.empty(num_steps)
-    in_amp_values = np.empty(num_steps)
-    out_freq_values = np.empty(num_steps)
-    out_amp_values = np.empty(num_steps)
-    phase_shift = np.empty(num_steps)
-    print(f'Number of steps: {num_steps}')
-
-    i = 0
+    
     # Acquire data at each step
     for i in range(num_steps):
         #Wait for autorscale to finish
         osc.write('AUTORSET?')
         time.sleep((args.sweep_time / num_steps)/2)
-        
+
         # Set MDO measurements for input
         osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
         osc.write(':measure:source1 CH'+str(args.mdo_input_port_in))
