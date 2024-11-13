@@ -80,8 +80,8 @@ if __name__ == "__main__":
         # Measure phase shift
         osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
         osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
-        osc.write(':measure:source1 CH'+str(args.mdo_input_port1)) #eg CH1
-        osc.write(':measure:source2 CH'+str(args.mdo_input_port2)) #eg CH2
+        osc.write(':measure:source1 CH'+str(args.mdo_input_port_in)) #eg CH1
+        osc.write(':measure:source2 CH'+str(args.mdo_input_port_out)) #eg CH2
     
         phase_shift[i] = osc.query('measure:phase?')
 
