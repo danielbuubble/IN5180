@@ -54,6 +54,10 @@ if __name__ == "__main__":
     i = 0
     # Acquire data at each step
     for i in range(num_steps):
+        #Wait for autorscale to finish
+        osc.write('AUTORSET?')
+        time.sleep((args.sweep_time / num_steps)/2)
+        
         # Set MDO measurements for input
         osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
         osc.write(':measure:source1 CH'+str(args.mdo_input_port_in))
@@ -74,7 +78,7 @@ if __name__ == "__main__":
         osc.write(':measure:source2 CH'+str(args.mdo_input_port_out)) #eg CH2
         phase_shift[i] = osc.write('measure:phase?')
         
-        time.sleep(args.sweep_time / num_steps)  # Wait for the next step
+        time.sleep((args.sweep_time / num_steps)/2)  # Wait for the next step
         i += 1
 
     # Sweep Off
