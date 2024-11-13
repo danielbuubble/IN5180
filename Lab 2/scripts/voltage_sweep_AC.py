@@ -54,7 +54,7 @@ if __name__ == "__main__":
     # Acquire data at each step
     for i in range(num_steps):
         # Wait for autoscale to finish
-        osc.write('AUTORSET?')
+        osc.write(':AUTOSet')
         time.sleep((args.sweep_time / num_steps)/2)
 
         # Set MDO measurements for input
