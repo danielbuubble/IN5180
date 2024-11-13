@@ -46,6 +46,15 @@ if (__name__ == "__main__"):
     #Wait for valid output from the mfg: 
     time.sleep(10)
 
+    osc.write(':CHANnel'+str(args.mdo_input_port1)+':DISPlay ON')
+    osc.write(':measure:source1 CH'+str(args.mdo_input_port1)) #eg CH1
+    print('InputFrequency: '+str(osc.query(':measure:frequency?')))
+    print('InputAmplitude: '+str(osc.query(':measure:amplitude?')))
+
+    osc.write(':CHANnel'+str(args.mdo_input_port2)+':DISPlay ON')
+    osc.write(':measure:source2 CH'+str(args.mdo_input_port2)) #eg CH2
+    print('OutputFrequency: '+str(osc.query(':measure:frequency?')))
+    print('OutputAmplitude: '+str(osc.query(':measure:amplitude?')))
     
     
     #Phase difference measurement:
@@ -55,8 +64,6 @@ if (__name__ == "__main__"):
     osc.write(':measure:source2 CH'+str(args.mdo_input_port2)) #eg CH2
     
     print('Phase difference: '+str(osc.query('measure:phase?')))
-    print('Frequency: '+str(osc.query(':measure:frequency?')))
-    print('Amplitude: '+str(osc.query(':measure:amplitude?')))
 
     
     '''
