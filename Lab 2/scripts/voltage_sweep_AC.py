@@ -4,7 +4,7 @@ import time
 import argparse
 import matplotlib.pyplot as plt
 
-def exisiting_tool(lab_num, tool, socket_num):
+def exisiting_tool(rm, lab_num, tool, socket_num):
     resource = rm.open_resource(f"TCPIP::nano-slab-{lab_num}-{tool}.uio.no::{socket_num}::SOCKET")
     resource.read_termination = '\n'
     if tool != "gpp":
@@ -29,16 +29,16 @@ if __name__ == "__main__":
     rm = pyvisa.ResourceManager()
     rm.list_resources()
 
-    mfg = exisiting_tool(args.slab_num, "mfg", 1026)
-    osc = exisiting_tool(args.slab_num, "mdo", 3000)
+    mfg = exisiting_tool(rm, args.slab_num, "mfg", 1026)
+    osc = exisiting_tool(rm, args.slab_num, "mdo", 3000)
 
     # Prepare arrays to store measurements
     num_steps = int(args.sweep_time * 10)  # Adjust as needed for sampling rate
-    in_freq_values = []
-    in_amp_values = []
-    out_freq_values = []
-    out_amp_values = []
-    phase_shift = []
+    in_freq_values = np.zeros(num_steps)
+    in_amp_values = np.zeros(num_steps)
+    out_freq_values = np.zeros(num_steps)
+    out_amp_values = np.zeros(num_steps)
+    phase_shift = np.zeros(num_steps)
     print(f'Number of steps: {num_steps}')
 
     # Configure the MFG Sweep
@@ -57,28 +57,28 @@ if __name__ == "__main__":
         osc.write(':AUTOSet')
         time.sleep((args.sweep_time / num_steps)/2)
 
-        #Input measurement
-        osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
-        osc.write(':measure:source1 CH'+str(args.mdo_input_port_in))
-        in_freq_values[i] = osc.query(':measure:frequency?')
-        in_amp_values[i] = osc.query(':measure:amplitude?')
+        # Input measurement
+        osc.write(f':CHANnel{args.mdo_input_port_in}:DISPlay ON')
+        osc.write(f':measure:source1 CH{args.mdo_input_port_in}')
+        in_freq_values[i] = float(osc.query(':measure:frequency?'))
+        in_amp_values[i] = float(osc.query(':measure:amplitude?'))
         time.sleep(0.5)
 
-        #Output measurement
-        osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
-        osc.write(':measure:source2 CH'+str(args.mdo_input_port_out))
-        out_freq_values[i] = osc.query(':measure:frequency?')
-        out_amp_values[i] = osc.query(':measure:amplitude?')
+        # Output measurement
+        osc.write(f':CHANnel{args.mdo_input_port_out}:DISPlay ON')
+        osc.write(f':measure:source2 CH{args.mdo_input_port_out}')
+        out_freq_values[i] = float(osc.query(':measure:frequency?'))
+        out_amp_values[i] = float(osc.query(':measure:amplitude?'))
         time.sleep(0.5)
 
-        #Phase difference measurement:
-        osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
-        osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
-        osc.write(':measure:source1 CH'+str(args.mdo_input_port_in)) #eg CH1
-        osc.write(':measure:source2 CH'+str(args.mdo_input_port_out)) #eg CH2
-        phase_shift[i] = osc.query('measure:phase?')
-        print('Phase difference: '+str(osc.query('measure:phase?')))
-        
+        # Phase difference measurement:
+        osc.write(f':CHANnel{args.mdo_input_port_in}:DISPlay ON')
+        osc.write(f':CHANnel{args.mdo_input_port_out}:DISPlay ON')
+        osc.write(f':measure:source1 CH{args.mdo_input_port_in}') #eg CH1
+        osc.write(f':measure:source2 CH{args.mdo_input_port_out}') #eg CH2
+        phase_shift[i] = float(osc.query('measure:phase?'))
+        print(f'Phase difference: {phase_shift[i]}')
+
         time.sleep((args.sweep_time / num_steps)/2)  # Wait for the next step
 
     print(f'Phase shift: {phase_shift}')
