@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     rm = pyvisa.ResourceManager()
     rm.list_resources()
-    
+
     mfg = exisiting_tool(args.slab_num, "mfg", 1026)
     osc = exisiting_tool(args.slab_num, "mdo", 3000)
 
@@ -43,16 +43,18 @@ if __name__ == "__main__":
 
     i = 0
     # Configure the MFG Sweep
-    mfg.write(f'OUTPUT{args.mfg_output_port}:LOAD INF')
-    mfg.write(f'SOURCE{args.mfg_output_port}:APPL:SIN {args.start_frequency},{args.amplitude},{args.offset}')
-    mfg.write(f'SOURCE{args.mfg_output_port}:FREQ:START {args.start_frequency}')
-    mfg.write(f'SOURCE{args.mfg_output_port}:FREQ:STOP {args.stop_frequency}')
-    mfg.write(f'SOURCE{args.mfg_output_port}:FREQ:SWEEP:TIME {args.sweep_time}')
-    mfg.write(f'SOURCE{args.mfg_output_port}:FREQ:MODE SWEEP')
+    mfg.write('OUTPUT'+str(args.mfg_output_port)+':LOAD INF')
+    mfg.write('SOURce'+str(args.mfg_output_port)+':SWEep:STATe?')
+    mfg.write('source'+str(args.mfg_output_port)+':appl:sin '+str(args.start_frequency)+','+str(args.amplitude)+','+str(args.offset))
+    mfg.write('SOURCE'+str(args.mfg_output_port)+':FREQ:START '+str(args.start_frequency))
+    mfg.write('SOURCE'+str(args.mfg_output_port)+':FREQ:STOP '+str(args.stop_frequency))
+    mfg.write('source'+str(args.mfg_output_port)+':SWEEP:SPACING LOG')
+    mfg.write('SOURCE'+str(args.mfg_output_port)+':FREQSWEEP:TIME' +str(args.sweep_time))
+    mfg.write('SOURCE'+str(args.mfg_output_port)+':SWEEP:SOURCE?')
 
     # Start Sweep
-    mfg.write(f'OUTPUT{args.mfg_output_port} ON')
-    mfg.write(f'SOURCE{args.mfg_output_port}:FREQ:SWEEP:STATE ON')
+    #mfg.write('OUTPUT'+str(args.mfg_output_port)+' ON')
+    #mfg.write('SOURCE'+str(args.mfg_output_port)+':FREQ:SWEEP:STATE ON')
 
     
     # Acquire data at each step
@@ -85,8 +87,8 @@ if __name__ == "__main__":
         i += 1
 
     # Sweep Off
-    mfg.write(f'SOURCE{args.mfg_output_port}:FREQ:SWEEP:STATE OFF')
-    mfg.write(f'OUTPUT{args.mfg_output_port} OFF')
+    mfg.write('SOURCE'+str(args.mfg_output_port)+':FREQ:SWEEP:STATE OFF')
+    mfg.write('OUTPUT'+str(args.mfg_output_port)+ 'OFF')
 
     # Plot or process data
     plt.plot(in_freq_values, phase_shift, label="Phase Shift")
