@@ -37,13 +37,8 @@ if (__name__ == "__main__"):
     osc = exisiting_tool(args.slab_num,"mdo",3000)
         
     #Set otuput load of MFG to high impedanze
-    mfg.write('output1:load inf')
-    mfg.write('output2:load inf')
-    #Set signal for mfg:
-    mfg.write('source1:appl:sin '+str(args.frequency)+','+str(args.amplitude)+','+str(args.offset))
-    mfg.write('source2:appl:sin '+str(args.frequency)+','+str(args.amplitude)+','+str(args.offset))
-    mfg.write('SOURce1:PHASe 0')
-    mfg.write('SOURce2:PHASe '+str(args.phase))
+    mfg.write(f'OUTPUT{args.mfg_output_port}:LOAD INF')
+    mfg.write(f'SOURCE{args.mfg_output_port}:APPL:SIN {args.start_frequency},{args.amplitude},{args.offset}')
     osc.write(':AUTOSet')
     #Wait for valid output from the mfg: 
     time.sleep(10)
