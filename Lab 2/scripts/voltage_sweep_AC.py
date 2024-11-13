@@ -49,21 +49,29 @@ if __name__ == "__main__":
     out_freq_values = np.empty(num_steps)
     out_amp_values = np.empty(num_steps)
     phase_shift = np.empty(num_steps)
+    print(f'Number of steps: {num_steps}')
 
+    i = 0
     # Acquire data at each step
     for i in range(num_steps):
         # Set MDO measurements for input
-        osc.write(f':MEASURE:SOURCE1 CH{args.mdo_input_port_in}')
-        in_freq_values[i] = osc.query(':measure:frequency?')
-        in_amp_values[i] = osc.query(':MEASURE:AMPLITUDE?')
+        osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
+        osc.write(':measure:source1 CH'+str(args.mdo_input_port_in))
+        in_freq_values[i] = osc.write(':measure:frequency?')
+        in_amp_values[i] = osc.write(':measure:amplitude?')
 
         # Set MDO measurements for output
-        osc.write(f':MEASURE:SOURCE2 CH{args.mdo_input_port_out}')
-        out_freq_values[i] = osc.query(':measure:frequency?')
-        out_amp_values[i] = osc.query(':MEASURE:AMPLITUDE?')
+        osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
+        osc.write(':measure:source2 CH'+str(args.mdo_input_port_out))
+        out_freq_values[i] = osc.write(':measure:frequency?')
+        out_amp_values[i] = osc.write(':measure:amplitude?')
 
         # Measure phase shift
-        phase_shift[i] = osc.query(':MEASURE:PHASE?')
+        osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
+        osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
+        osc.write(':measure:source1 CH'+str(args.mdo_input_port_in)) #eg CH1
+        osc.write(':measure:source2 CH'+str(args.mdo_input_port_out)) #eg CH2
+        phase_shift[i] = osc.write('measure:phase?')
         
         time.sleep(args.sweep_time / num_steps)  # Wait for the next step
 
