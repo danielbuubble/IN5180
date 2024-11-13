@@ -76,6 +76,7 @@ if __name__ == "__main__":
         out_freq_values[i] = osc.write(':measure:frequency?')
         out_amp_values[i] = osc.write(':measure:amplitude?')
 
+        print(f'Amp_in: {in_amp_values[i]} Amp_out: {out_amp_values[i]}')
         # Measure phase shift
         osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
         osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
