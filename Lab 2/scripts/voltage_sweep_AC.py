@@ -54,9 +54,9 @@ if __name__ == "__main__":
     # Acquire data at each step
     for i in range(num_steps):
         # Wait for autoscale to finish
-        #osc.write('AUTORSET?')
+        osc.write('AUTORSET:MODe FITScreen')
         time.sleep((args.sweep_time / num_steps)/2)
-
+        print(f'Count: {i}')
         # Set MDO measurements for input
         osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
         osc.write(':measure:source1 CH'+str(args.mdo_input_port_in))
