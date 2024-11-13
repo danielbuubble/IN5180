@@ -43,14 +43,15 @@ if __name__ == "__main__":
 
     i = 0
     # Configure the MFG Sweep
-    mfg.write('OUTPUT'+str(args.mfg_output_port)+':LOAD INF')
-    mfg.write('SOURce'+str(args.mfg_output_port)+':SWEep:STATe?')
+    mfg.write('output'+str(args.mfg_output_port)+':load inf')
+    mfg.write('source'+str(args.mfg_output_port)+':sweep:state?')
     mfg.write('source'+str(args.mfg_output_port)+':appl:sin '+str(args.start_frequency)+','+str(args.amplitude)+','+str(args.offset))
-    mfg.write('SOURCE'+str(args.mfg_output_port)+':FREQ:START '+str(args.start_frequency))
-    mfg.write('SOURCE'+str(args.mfg_output_port)+':FREQ:STOP '+str(args.stop_frequency))
-    mfg.write('source'+str(args.mfg_output_port)+':SWEEP:SPACING LOG')
-    mfg.write('SOURCE'+str(args.mfg_output_port)+':FREQSWEEP:TIME' +str(args.sweep_time))
-    mfg.write('SOURCE'+str(args.mfg_output_port)+':SWEEP:SOURCE?')
+    mfg.write('source'+str(args.mfg_output_port)+':freq:start '+str(args.start_frequency))
+    mfg.write('source'+str(args.mfg_output_port)+':freq:stop '+str(args.stop_frequency))
+    mfg.write('source'+str(args.mfg_output_port)+':sweep:spacing log')
+    mfg.write('source'+str(args.mfg_output_port)+':sweep:time' +str(args.sweep_time))
+    mfg.write('source'+str(args.mfg_output_port)+':sweep:source?')
+    mfg.write('source'+str(args.mfg_output_port)+':marker?')
 
     # Start Sweep
     #mfg.write('OUTPUT'+str(args.mfg_output_port)+' ON')
