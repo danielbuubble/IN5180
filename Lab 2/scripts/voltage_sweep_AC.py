@@ -46,12 +46,12 @@ if __name__ == "__main__":
     mfg.write('output'+str(args.mfg_output_port)+':load inf')
     mfg.write('output'+str(args.mfg_output_port)+'ON')
     mfg.write('source'+str(args.mfg_output_port)+':SWE:STAT ON')
-    mfg.write('source'+str(args.mfg_output_port)+':appl:sin '+str(args.start_frequency)+','+str(args.amplitude)+','+str(args.offset))
-    mfg.write('source'+str(args.mfg_output_port)+':freq:start '+str(args.start_frequency))
-    mfg.write('source'+str(args.mfg_output_port)+':freq:stop '+str(args.stop_frequency))
-    mfg.write('source'+str(args.mfg_output_port)+':sweep:spacing LOG')
-    mfg.write('source'+str(args.mfg_output_port)+':sweep:TIME ' +str(args.sweep_time))
-    #mfg.write('source'+str(args.mfg_output_port)+':sweep:source IMM')
+    mfg.write('source'+str(args.mfg_output_port)+':APPL:SIN '+str(args.start_frequency)+','+str(args.amplitude)+','+str(args.offset))
+    mfg.write('source'+str(args.mfg_output_port)+':FREQ:STAR '+str(args.start_frequency))
+    mfg.write('source'+str(args.mfg_output_port)+':FREQ:STOP '+str(args.stop_frequency))
+    mfg.write('source'+str(args.mfg_output_port)+':SWE:SPAC LOG')
+    mfg.write('source'+str(args.mfg_output_port)+':SWE:TIME ' +str(args.sweep_time))
+    #mfg.write('source'+str(args.mfg_output_port)+':SWE:source IMM')
     
     #mfg.write('source'+str(args.mfg_output_port)+':mark?')
 
