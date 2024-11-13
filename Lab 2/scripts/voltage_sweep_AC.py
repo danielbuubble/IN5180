@@ -61,8 +61,8 @@ if __name__ == "__main__":
         # Set MDO measurements for input
         osc.write(f':CHANnel{args.mdo_input_port_in}:DISPlay ON')
         osc.write(f':measure:source1 CH{args.mdo_input_port_in}')
-        in_freq_values[i] = osc.write(':measure:frequency?')
-        in_amp_values[i] = osc.write(':measure:amplitude?')
+        in_freq_values[i] = osc.query('measure:frequency?')
+        in_amp_values[i] = osc.query('measure:amplitude?')
         print(f'Cnt: {i} Frequency: {in_freq_values[i]}')
         time.sleep(0.5)
         if in_freq_values[i] > highest_freq:
