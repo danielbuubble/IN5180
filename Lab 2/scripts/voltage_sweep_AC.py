@@ -41,60 +41,51 @@ if __name__ == "__main__":
     phase_shift = np.empty(num_steps)
     print(f'Number of steps: {num_steps}')
 
-    i = 0
     # Configure the MFG Sweep
-    #mfg.write('output'+str(args.mfg_output_port)+':load inf')
-    #mfg.write('output'+str(args.mfg_output_port)+'ON')
-    #mfg.write('SOUR'+str(args.mfg_output_port)+':SWE:STAT ON')
-    mfg.write('SOUR'+str(args.mfg_output_port)+':APPL:SIN '+str(args.start_frequency)+','+str(args.amplitude)+','+str(args.offset))
-    mfg.write('SOUR'+str(args.mfg_output_port)+':FREQ:STAR '+str(args.start_frequency))
-    mfg.write('SOUR'+str(args.mfg_output_port)+':FREQ:STOP '+str(args.stop_frequency))
-    mfg.write('SOUR'+str(args.mfg_output_port)+':SWE:SPAC LOG')
-    mfg.write('SOUR'+str(args.mfg_output_port)+':SWE:TIME '+str(args.sweep_time))
-    #mfg.write('SOUR'+str(args.mfg_output_port)+':SWE:SOUR INT')
-    #mfg.write('SOUR'+str(args.mfg_output_port)+':MARK:FREQ '+str(args.start_frequency))
-    #mfg.write('SOUR'+str(args.mfg_output_port)+':MARK ON')
-    mfg.write('SOUR'+str(args.mfg_output_port)+':SWE:STAT ON')
-    # Start Sweep
-    #mfg.write('OUTPUT'+str(args.mfg_output_port)+' ON')
-    #mfg.write('SOUR'+str(args.mfg_output_port)+':FREQ:SWEEP:STATE ON')
+    mfg.write(f'OUTPUT{args.mfg_output_port}:LOAD INF')
+    mfg.write(f'SOURCE{args.mfg_output_port}:APPL:SIN {args.start_frequency},{args.amplitude},{args.offset}')
+    mfg.write(f'SOURCE{args.mfg_output_port}:FREQ:START {args.start_frequency}')
+    mfg.write(f'SOURCE{args.mfg_output_port}:FREQ:STOP {args.stop_frequency}')
+    mfg.write(f'SOURCE{args.mfg_output_port}:SWEEP:SPACING LOG')
+    mfg.write(f'SOURCE{args.mfg_output_port}:SWEEP:TIME {args.sweep_time}')
+    mfg.write(f'SOURCE{args.mfg_output_port}:SWEEP:STATE ON')  # Correct command to start sweep
+    mfg.write(f'OUTPUT{args.mfg_output_port} ON')  # Enable output
 
-    
     # Acquire data at each step
     for i in range(num_steps):
-        #Wait for autorscale to finish
+        # Wait for autoscale to finish
         osc.write('AUTORSET?')
         time.sleep((args.sweep_time / num_steps)/2)
 
         # Set MDO measurements for input
-        osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
-        osc.write(':measure:source1 CH'+str(args.mdo_input_port_in))
-        in_freq_values[i] = osc.write(':measure:frequency?')
-        in_amp_values[i] = osc.write(':measure:amplitude?')
+        osc.write(f':CHANnel{args.mdo_input_port_in}:DISPlay ON')
+        osc.write(f':measure:source1 CH{args.mdo_input_port_in}')
+        in_freq_values[i] = osc.query(':measure:frequency?')
+        in_amp_values[i] = osc.query(':measure:amplitude?')
         print(f'Cnt: {i} Frequency: {in_freq_values[i]}')
         time.sleep(0.5)
 
         # Set MDO measurements for output
-        osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
-        osc.write(':measure:source2 CH'+str(args.mdo_input_port_out))
-        out_freq_values[i] = osc.write(':measure:frequency?')
-        out_amp_values[i] = osc.write(':measure:amplitude?')
+        osc.write(f':CHANnel{args.mdo_input_port_out}:DISPlay ON')
+        osc.write(f':measure:source2 CH{args.mdo_input_port_out}')
+        out_freq_values[i] = osc.query(':measure:frequency?')
+        out_amp_values[i] = osc.query(':measure:amplitude?')
 
         print(f'Amp_in: {in_amp_values[i]} Amp_out: {out_amp_values[i]}')
         time.sleep(0.5)
+
         # Measure phase shift
-        osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
-        osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
-        osc.write(':measure:source1 CH'+str(args.mdo_input_port_in)) #eg CH1
-        osc.write(':measure:source2 CH'+str(args.mdo_input_port_out)) #eg CH2
-        phase_shift[i] = osc.write('measure:phase?')
+        osc.write(f':CHANnel{args.mdo_input_port_in}:DISPlay ON')
+        osc.write(f':CHANnel{args.mdo_input_port_out}:DISPlay ON')
+        osc.write(f':measure:source1 CH{args.mdo_input_port_in}') # eg CH1
+        osc.write(f':measure:source2 CH{args.mdo_input_port_out}') # eg CH2
+        phase_shift[i] = osc.query('measure:phase?')
         
         time.sleep((args.sweep_time / num_steps)/2)  # Wait for the next step
-        i += 1
 
     # Sweep Off
-    mfg.write('SOUR'+str(args.mfg_output_port)+':FREQ:SWEEP:STATE OFF')
-    mfg.write('OUTPUT'+str(args.mfg_output_port)+ 'OFF')
+    mfg.write(f'SOURCE{args.mfg_output_port}:FREQ:SWEEP:STATE OFF')
+    mfg.write(f'OUTPUT{args.mfg_output_port} OFF')
 
     # Plot or process data
     plt.plot(in_freq_values, phase_shift, label="Phase Shift")
