@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     i = 0
     # Configure the MFG Sweep
-    mfg.write('output'+str(args.mfg_output_port)+':load inf')
+    #mfg.write('output'+str(args.mfg_output_port)+':load inf')
     mfg.write('source'+str(args.mfg_output_port)+':sweep:state?')
     mfg.write('source'+str(args.mfg_output_port)+':appl:sin '+str(args.start_frequency)+','+str(args.amplitude)+','+str(args.offset))
     mfg.write('source'+str(args.mfg_output_port)+':freq:start '+str(args.start_frequency))
