@@ -22,8 +22,7 @@ if __name__ == "__main__":
     parser.add_argument("--stop_frequency", required=True, type=float, help="Sweep stop frequency")
     parser.add_argument("--sweep_time", required=True, type=float, help="Total sweep duration in seconds")
     parser.add_argument("--amplitude", required=True, type=float, help="Signal amplitude")
-    parser.add_argument("--offset", required=True, type=float, help="Signal offset")
-
+    parser.add_argument("--offset", required=True, type=float, help="Signal offset")    
     args = parser.parse_args()
 
     rm = pyvisa.ResourceManager()
@@ -57,8 +56,7 @@ if __name__ == "__main__":
 
         # Input measurement
         osc.write(f':CHANnel{args.mdo_input_port_in}:DISPlay ON')
-        osc.write(':MEASure:SOURCE CH{args.mdo_input_port_in}')
-        print('Frequency: '+str(osc.query(':measure:frequency?')))
+        osc.write(f':MEASure:SOURce CH{args.mdo_input_port_in}')
         current_frequency = osc.query(':MEASure:FREQuency?')
         current_amplitude = osc.query(':measure:amplitude?')
         
@@ -69,9 +67,9 @@ if __name__ == "__main__":
 
         # Output measurement
         osc.write(f':CHANnel{args.mdo_input_port_out}:DISPlay ON')
-        osc.write(f':measure:source2 CH{args.mdo_input_port_out}')
+        osc.write(f':MEASure:SOURce CH{args.mdo_input_port_out}')
         
-        current_frequency_out = osc.query(':measure:frequency?')
+        current_frequency_out = osc.query(':MEASure:FREQuency?')
         current_amplitude_out = osc.query(':measure:amplitude?')
         
         out_freq_values.append(current_frequency_out)
@@ -80,8 +78,8 @@ if __name__ == "__main__":
         time.sleep(0.5)
 
         # Phase difference measurement:
-        osc.write(f':measure:source1 CH{args.mdo_input_port_in}')  # e.g., CH1
-        osc.write(f':measure:source2 CH{args.mdo_input_port_out}')  # e.g., CH2
+        osc.write(f':MEASure:SOURce1 CH{args.mdo_input_port_in}')  # e.g., CH1
+        osc.write(f':MEASure:SOURce2 CH{args.mdo_input_port_out}')  # e.g., CH2
         
         current_phase_shift = osc.query('measure:phase?')
         
@@ -89,8 +87,8 @@ if __name__ == "__main__":
         print(f'Phase difference: {current_phase_shift}')
 
         # Check if the sweep has completed
-        if current_frequency >= prev_frequency:
-            prev_frequency = current_frequency
+        if float(current_frequency) >= float(prev_frequency):
+            prev_frequency = float(current_frequency)
         else:
             break  # Exit the loop if the frequency is lower than the previous
 
