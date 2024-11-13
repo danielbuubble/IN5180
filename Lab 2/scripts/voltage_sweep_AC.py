@@ -60,7 +60,7 @@ if __name__ == "__main__":
         osc.write(':MEASure:SOURCE CH{args.mdo_input_port_in}')
         
         current_frequency = osc.write(':MEASure:FREQuency?')
-        current_amplitude = float(osc.query(':measure:amplitude?'))
+        current_amplitude = osc.query(':measure:amplitude?')
         
         in_freq_values.append(current_frequency)
         in_amp_values.append(current_amplitude)
