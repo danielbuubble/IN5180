@@ -59,7 +59,7 @@ if __name__ == "__main__":
         osc.write(f':CHANnel{args.mdo_input_port_in}:DISPlay ON')
         osc.write(':MEASure:SOURCE CH{args.mdo_input_port_in}')
         
-        current_frequency = osc.write(':MEASure:FREQuency?')
+        current_frequency = osc.query(':MEASure:FREQuency?')
         current_amplitude = osc.query(':measure:amplitude?')
         
         in_freq_values.append(current_frequency)
@@ -71,8 +71,8 @@ if __name__ == "__main__":
         osc.write(f':CHANnel{args.mdo_input_port_out}:DISPlay ON')
         osc.write(f':measure:source2 CH{args.mdo_input_port_out}')
         
-        current_frequency_out = float(osc.query(':measure:frequency?'))
-        current_amplitude_out = float(osc.query(':measure:amplitude?'))
+        current_frequency_out = osc.query(':measure:frequency?')
+        current_amplitude_out = osc.query(':measure:amplitude?')
         
         out_freq_values.append(current_frequency_out)
         out_amp_values.append(current_amplitude_out)
@@ -83,7 +83,7 @@ if __name__ == "__main__":
         osc.write(f':measure:source1 CH{args.mdo_input_port_in}')  # e.g., CH1
         osc.write(f':measure:source2 CH{args.mdo_input_port_out}')  # e.g., CH2
         
-        current_phase_shift = float(osc.query('measure:phase?'))
+        current_phase_shift = osc.query('measure:phase?')
         
         phase_shift.append(current_phase_shift)
         print(f'Phase difference: {current_phase_shift}')
