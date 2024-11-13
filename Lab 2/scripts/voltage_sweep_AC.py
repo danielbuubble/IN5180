@@ -58,7 +58,7 @@ if __name__ == "__main__":
         # Input measurement
         osc.write(f':CHANnel{args.mdo_input_port_in}:DISPlay ON')
         osc.write(':MEASure:SOURCE CH{args.mdo_input_port_in}')
-        
+        print('Frequency: '+str(osc.query(':measure:frequency?')))
         current_frequency = osc.query(':MEASure:FREQuency?')
         current_amplitude = osc.query(':measure:amplitude?')
         
