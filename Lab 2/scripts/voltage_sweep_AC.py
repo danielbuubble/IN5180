@@ -45,20 +45,20 @@ if __name__ == "__main__":
     # Configure the MFG Sweep
     #mfg.write('output'+str(args.mfg_output_port)+':load inf')
     #mfg.write('output'+str(args.mfg_output_port)+'ON')
-    mfg.write('source'+str(args.mfg_output_port)+':SWE:STAT?')
-    mfg.write('source'+str(args.mfg_output_port)+':APPL:SIN '+str(args.start_frequency)+','+str(args.amplitude)+','+str(args.offset))
-    mfg.write('source'+str(args.mfg_output_port)+':FREQ:STAR '+str(args.start_frequency))
-    mfg.write('source'+str(args.mfg_output_port)+':FREQ:STOP '+str(args.stop_frequency))
-    mfg.write('source'+str(args.mfg_output_port)+':SWE:SPAC LOG')
-    mfg.write('source'+str(args.mfg_output_port)+':SWE:TIME ' +str(args.sweep_time))
-    mfg.write('source'+str(args.mfg_output_port)+':SWE:SOUR?')
-    mfg.write('source'+str(args.mfg_output_port)+':MARK:FREQ?')
+    mfg.write('SOUR'+str(args.mfg_output_port)+':SWE:STAT ON')
+    mfg.write('SOUR'+str(args.mfg_output_port)+':APPL:SIN '+str(args.start_frequency)+','+str(args.amplitude)+','+str(args.offset))
+    mfg.write('SOUR'+str(args.mfg_output_port)+':FREQ:STAR '+str(args.start_frequency))
+    mfg.write('SOUR'+str(args.mfg_output_port)+':FREQ:STOP '+str(args.stop_frequency))
+    mfg.write('SOUR'+str(args.mfg_output_port)+':SWE:SPAC LOG')
+    mfg.write('SOUR'+str(args.mfg_output_port)+':SWE:TIME '+str(args.sweep_time))
+    mfg.write('SOUR'+str(args.mfg_output_port)+':SWE:SOUR INT')
+    mfg.write('SOUR'+str(args.mfg_output_port)+':MARK:FREQ '+str(args.start_frequency))
     
-    mfg.write('source'+str(args.mfg_output_port)+':MARK?')
+    mfg.write('SOUR'+str(args.mfg_output_port)+':MARK ON')
 
     # Start Sweep
     #mfg.write('OUTPUT'+str(args.mfg_output_port)+' ON')
-    #mfg.write('SOURCE'+str(args.mfg_output_port)+':FREQ:SWEEP:STATE ON')
+    #mfg.write('SOUR'+str(args.mfg_output_port)+':FREQ:SWEEP:STATE ON')
 
     
     # Acquire data at each step
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         i += 1
 
     # Sweep Off
-    mfg.write('SOURCE'+str(args.mfg_output_port)+':FREQ:SWEEP:STATE OFF')
+    mfg.write('SOUR'+str(args.mfg_output_port)+':FREQ:SWEEP:STATE OFF')
     mfg.write('OUTPUT'+str(args.mfg_output_port)+ 'OFF')
 
     # Plot or process data
