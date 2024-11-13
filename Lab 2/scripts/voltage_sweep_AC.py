@@ -62,8 +62,8 @@ if __name__ == "__main__":
         osc.write(':measure:source1 CH'+str(args.mdo_input_port_in))
         #in_freq_values[i] = osc.write(':measure:frequency?')
         #in_amp_values[i] = osc.write(':measure:amplitude?')
-        print(f'Input frequency: {osc.query(":measure:frequency?")}')
-        print(f'Input amplitude: {osc.query(":measure:amplitude?")}')
+        print('Input frequency:'+str(osc.query(":measure:frequency?")))
+        print('Input amplitude:'+str(osc.query(":measure:amplitude?")))
         time.sleep(0.5)
 
         #Output measurement
@@ -71,8 +71,8 @@ if __name__ == "__main__":
         osc.write(':measure:source2 CH'+str(args.mdo_input_port_out))
         #out_freq_values[i] = osc.write(':measure:frequency?')
         #out_amp_values[i] = osc.write(':measure:amplitude?')
-        print(f'Output frequency: {osc.query(":measure:frequency?")}')
-        print(f'Output amplitude: {osc.query(":measure:amplitude?")}')
+        print('Output frequency:'+str(osc.query(":measure:frequency?")))
+        print(f'Output amplitude:'+str(osc.query(":measure:amplitude?")))
         time.sleep(0.5)
 
 
