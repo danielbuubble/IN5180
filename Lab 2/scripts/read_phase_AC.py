@@ -19,8 +19,9 @@ if (__name__ == "__main__"):
         description="Setting a DC voltage with the power supply (gpp) and reading it with the digital multimeter(gdm)"
     )
     parser.add_argument("--slab_num", required=True, type=int, help="Lab space number between 1 and 6")
-    parser.add_argument("--mdo_input_port1", required=True, type=int, help="Which of the MFG channels is used, 1 or 2")
-    parser.add_argument("--mdo_input_port2", required=True, type=int, help="Osillosccope input channel")
+    parser.add_argument("--mfg_output_port", required=True, type=int, help="MFG output port, 1 or 2")
+    parser.add_argument("--mdo_input_port_in", required=True, type=int, help="MDO input channel for input signal")
+    parser.add_argument("--mdo_input_port_out", required=True, type=int, help="MDO input channel for output signal")
     parser.add_argument("--frequency", required=True, type=float, help="MFG output frequency")
     parser.add_argument("--amplitude", required=True, type=float, help="MFG output amplitude")
     parser.add_argument("--offset", required=True, type=float, help="MFG output DC offset")
@@ -46,22 +47,22 @@ if (__name__ == "__main__"):
     #Wait for valid output from the mfg: 
     time.sleep(10)
 
-    osc.write(':CHANnel'+str(args.mdo_input_port1)+':DISPlay ON')
-    osc.write(':measure:source1 CH'+str(args.mdo_input_port1)) #eg CH1
+    osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
+    osc.write(':measure:source1 CH'+str(args.mdo_input_port_in)) #eg CH1
     print('InputFrequency: '+str(osc.query(':measure:frequency?')))
     print('InputAmplitude: '+str(osc.query(':measure:amplitude?')))
 
-    osc.write(':CHANnel'+str(args.mdo_input_port2)+':DISPlay ON')
-    osc.write(':measure:source2 CH'+str(args.mdo_input_port2)) #eg CH2
+    osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
+    osc.write(':measure:source2 CH'+str(args.mdo_input_port_out)) #eg CH2
     print('OutputFrequency: '+str(osc.query(':measure:frequency?')))
     print('OutputAmplitude: '+str(osc.query(':measure:amplitude?')))
     
     
     #Phase difference measurement:
-    osc.write(':CHANnel'+str(args.mdo_input_port1)+':DISPlay ON')
-    osc.write(':CHANnel'+str(args.mdo_input_port2)+':DISPlay ON')
-    osc.write(':measure:source1 CH'+str(args.mdo_input_port1)) #eg CH1
-    osc.write(':measure:source2 CH'+str(args.mdo_input_port2)) #eg CH2
+    osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
+    osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
+    osc.write(':measure:source1 CH'+str(args.mdo_input_port_in)) #eg CH1
+    osc.write(':measure:source2 CH'+str(args.mdo_input_port_out)) #eg CH2
     
     print('Phase difference: '+str(osc.query('measure:phase?')))
 
