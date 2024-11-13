@@ -57,12 +57,12 @@ if __name__ == "__main__":
         # Wait for autoscale to finish
         osc.write(':AUTOSET')
         time.sleep((args.sweep_time / num_steps) / 2)
-
+        """"
         # Set MDO measurements for input
         osc.write(f':CHANnel{args.mdo_input_port_in}:DISPlay ON')
         osc.write(f':measure:source1 CH{args.mdo_input_port_in}')
         in_freq_values[i] = osc.query('measure:frequency?')
-        in_amp_values[i] = osc.query('measure:amplitude?')
+        in_amp_values[i] = osc.query(':measure:amplitude?')
         print(f'Cnt: {i} Frequency: {in_freq_values[i]}')
         time.sleep(0.5)
         if in_freq_values[i] > highest_freq:
@@ -76,13 +76,14 @@ if __name__ == "__main__":
 
         print(f'Amp_in: {in_amp_values[i]} Amp_out: {out_amp_values[i]}')
         time.sleep(0.5)
-
+    """
         # Measure phase shift
-        osc.write(f':CHANnel{args.mdo_input_port_in}:DISPlay ON')
-        osc.write(f':CHANnel{args.mdo_input_port_out}:DISPlay ON')
-        osc.write(f':measure:source1 CH{args.mdo_input_port_in}')
-        osc.write(f':measure:source2 CH{args.mdo_input_port_out}')
-        phase_shift[i] = osc.write('measure:phase?')
+        osc.write(':CHANnel'+str(args.mdo_input_port1)+':DISPlay ON')
+        osc.write(':CHANnel'+str(args.mdo_input_port2)+':DISPlay ON')
+        osc.write(':measure:source1 CH'+str(args.mdo_input_port1)) #eg CH1
+        osc.write(':measure:source2 CH'+str(args.mdo_input_port2)) #eg CH2
+    
+        phase_shift[i] = osc.query('measure:phase?')
 
         i += 1
         time.sleep((args.sweep_time / num_steps) / 2)  # Wait for the next step
