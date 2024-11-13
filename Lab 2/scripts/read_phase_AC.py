@@ -38,7 +38,7 @@ if (__name__ == "__main__"):
         
     #Set otuput load of MFG to high impedanze
     mfg.write(f'OUTPUT{args.mfg_output_port}:LOAD INF')
-    mfg.write(f'SOURCE{args.mfg_output_port}:APPL:SIN {args.start_frequency},{args.amplitude},{args.offset}')
+    mfg.write(f'SOURCE{args.mfg_output_port}:APPL:SIN {args.frequency},{args.amplitude},{args.offset}')
     osc.write(':AUTOSet')
     #Wait for valid output from the mfg: 
     time.sleep(10)
