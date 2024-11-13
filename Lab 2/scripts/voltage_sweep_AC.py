@@ -53,7 +53,7 @@ if __name__ == "__main__":
     mfg.write('source'+str(args.mfg_output_port)+':SWE:TIME ' +str(args.sweep_time))
     #mfg.write('source'+str(args.mfg_output_port)+':SWE:source IMM')
     
-    #mfg.write('source'+str(args.mfg_output_port)+':mark?')
+    mfg.write('source'+str(args.mfg_output_port)+':MARK?')
 
     # Start Sweep
     #mfg.write('OUTPUT'+str(args.mfg_output_port)+' ON')
