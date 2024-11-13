@@ -53,7 +53,7 @@ if __name__ == "__main__":
     while True:
         # Wait for autoscale to finish
         osc.write(':AUTOSet')
-        time.sleep(0.5)  # Adjust as necessary
+        time.sleep(10)  # Adjust as necessary
 
         # Input measurement
         osc.write(f':CHANnel{args.mdo_input_port_in}:DISPlay ON')
