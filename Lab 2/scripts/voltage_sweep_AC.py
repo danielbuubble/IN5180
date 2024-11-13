@@ -60,15 +60,15 @@ if __name__ == "__main__":
         #Input measurement
         osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
         osc.write(':measure:source1 CH'+str(args.mdo_input_port_in))
-        in_freq_values[i] = osc.write(':measure:frequency?')
-        in_amp_values[i] = osc.write(':measure:amplitude?')
+        #in_freq_values[i] = osc.write(':measure:frequency?')
+        #in_amp_values[i] = osc.write(':measure:amplitude?')
         time.sleep(0.5)
 
         #Output measurement
         osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
         osc.write(':measure:source2 CH'+str(args.mdo_input_port_out))
-        out_freq_values[i] = osc.write(':measure:frequency?')
-        out_amp_values[i] = osc.write(':measure:amplitude?')
+        #out_freq_values[i] = osc.write(':measure:frequency?')
+        #out_amp_values[i] = osc.write(':measure:amplitude?')
         time.sleep(0.5)
 
         #Phase difference measurement:
@@ -77,10 +77,11 @@ if __name__ == "__main__":
         osc.write(':measure:source1 CH'+str(args.mdo_input_port_in)) #eg CH1
         osc.write(':measure:source2 CH'+str(args.mdo_input_port_out)) #eg CH2
         phase_shift[i] = osc.query('measure:phase?')
-        print('Phase difference: '+str(phase_shift[i]))
+        print('Phase difference: '+str(osc.query('measure:phase?')))
         
         time.sleep((args.sweep_time / num_steps)/2)  # Wait for the next step
 
+    print(f'Phase shift: {phase_shift}')
     # Sweep Off
     mfg.write(f'SOURCE{args.mfg_output_port}:FREQ:SWEEP:STATE OFF')
     mfg.write(f'OUTPUT{args.mfg_output_port} OFF')
