@@ -45,7 +45,7 @@ if __name__ == "__main__":
     # Configure the MFG Sweep
     #mfg.write('output'+str(args.mfg_output_port)+':load inf')
     #mfg.write('output'+str(args.mfg_output_port)+'ON')
-    mfg.write('source'+str(args.mfg_output_port)+':SWE:STAT ON')
+    mfg.write('source'+str(args.mfg_output_port)+':SWE:STAT?')
     mfg.write('source'+str(args.mfg_output_port)+':APPL:SIN '+str(args.start_frequency)+','+str(args.amplitude)+','+str(args.offset))
     mfg.write('source'+str(args.mfg_output_port)+':FREQ:STAR '+str(args.start_frequency))
     mfg.write('source'+str(args.mfg_output_port)+':FREQ:STOP '+str(args.stop_frequency))
