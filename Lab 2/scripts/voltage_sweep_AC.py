@@ -51,7 +51,8 @@ if __name__ == "__main__":
     mfg.write('source'+str(args.mfg_output_port)+':FREQ:STOP '+str(args.stop_frequency))
     mfg.write('source'+str(args.mfg_output_port)+':SWE:SPAC LOG')
     mfg.write('source'+str(args.mfg_output_port)+':SWE:TIME ' +str(args.sweep_time))
-    #mfg.write('source'+str(args.mfg_output_port)+':SWE:source IMM')
+    mfg.write('source'+str(args.mfg_output_port)+':SWE:SOUR?')
+    mfg.write('source'+str(args.mfg_output_port)+':MARK:FREQ?')
     
     mfg.write('source'+str(args.mfg_output_port)+':MARK?')
 
