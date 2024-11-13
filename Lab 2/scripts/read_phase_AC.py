@@ -44,6 +44,7 @@ if (__name__ == "__main__"):
     mfg.write('source2:appl:sin '+str(args.frequency)+','+str(args.amplitude)+','+str(args.offset))
     mfg.write('SOURce1:PHASe 0')
     mfg.write('SOURce2:PHASe '+str(args.phase))
+    osc.write(':AUTOSet')
     #Wait for valid output from the mfg: 
     time.sleep(10)
 
