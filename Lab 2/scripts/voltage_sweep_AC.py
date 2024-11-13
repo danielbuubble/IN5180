@@ -70,6 +70,7 @@ if __name__ == "__main__":
         in_freq_values[i] = osc.write(':measure:frequency?')
         in_amp_values[i] = osc.write(':measure:amplitude?')
         print(f'Cnt: {i} Frequency: {in_freq_values[i]}')
+        time.sleep(0.5)
 
         # Set MDO measurements for output
         osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
@@ -78,6 +79,7 @@ if __name__ == "__main__":
         out_amp_values[i] = osc.write(':measure:amplitude?')
 
         print(f'Amp_in: {in_amp_values[i]} Amp_out: {out_amp_values[i]}')
+        time.sleep(0.5)
         # Measure phase shift
         osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
         osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
