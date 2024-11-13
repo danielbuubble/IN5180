@@ -51,9 +51,9 @@ if __name__ == "__main__":
     mfg.write('SOUR'+str(args.mfg_output_port)+':FREQ:STOP '+str(args.stop_frequency))
     mfg.write('SOUR'+str(args.mfg_output_port)+':SWE:SPAC LOG')
     mfg.write('SOUR'+str(args.mfg_output_port)+':SWE:TIME '+str(args.sweep_time))
-    mfg.write('SOUR'+str(args.mfg_output_port)+':SWE:SOUR INT')
-    mfg.write('SOUR'+str(args.mfg_output_port)+':MARK:FREQ '+str(args.start_frequency))
-    mfg.write('SOUR'+str(args.mfg_output_port)+':MARK ON')
+    #mfg.write('SOUR'+str(args.mfg_output_port)+':SWE:SOUR INT')
+    #mfg.write('SOUR'+str(args.mfg_output_port)+':MARK:FREQ '+str(args.start_frequency))
+    #mfg.write('SOUR'+str(args.mfg_output_port)+':MARK ON')
     mfg.write('SOUR'+str(args.mfg_output_port)+':SWE:STAT ON')
     # Start Sweep
     #mfg.write('OUTPUT'+str(args.mfg_output_port)+' ON')
