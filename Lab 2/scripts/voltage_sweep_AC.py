@@ -33,13 +33,11 @@ if __name__ == "__main__":
     osc = exisiting_tool(rm, args.slab_num, "mdo", 3000)
 
     # Prepare arrays to store measurements
-    num_steps = int(args.sweep_time * 10)  # Adjust as needed for sampling rate
-    in_freq_values = np.zeros(num_steps)
-    in_amp_values = np.zeros(num_steps)
-    out_freq_values = np.zeros(num_steps)
-    out_amp_values = np.zeros(num_steps)
-    phase_shift = np.zeros(num_steps)
-    print(f'Number of steps: {num_steps}')
+    in_freq_values = []
+    in_amp_values = []
+    out_freq_values = []
+    out_amp_values = []
+    phase_shift = []
 
     # Configure the MFG Sweep
     mfg.write(f'OUTPUT{args.mfg_output_port}:LOAD INF')
@@ -51,35 +49,42 @@ if __name__ == "__main__":
     mfg.write(f'SOURCE{args.mfg_output_port}:SWEEP:STATE ON')  # Correct command to start sweep
     mfg.write(f'OUTPUT{args.mfg_output_port} ON')  # Enable output
 
-    # Acquire data at each step
-    for i in range(num_steps):
+    prev_frequency = float('inf')  # Initialize to something higher than max expected frequency
+    while True:
         # Wait for autoscale to finish
         osc.write(':AUTOSet')
-        time.sleep((args.sweep_time / num_steps)/2)
+        time.sleep(0.5)  # Adjust as necessary
 
         # Input measurement
         osc.write(f':CHANnel{args.mdo_input_port_in}:DISPlay ON')
         osc.write(f':measure:source1 CH{args.mdo_input_port_in}')
-        in_freq_values[i] = float(osc.query(':measure:frequency?'))
-        in_amp_values[i] = float(osc.query(':measure:amplitude?'))
+        current_frequency = float(osc.query(':measure:frequency?'))
+        current_amplitude = float(osc.query(':measure:amplitude?'))
+        in_freq_values.append(current_frequency)
+        in_amp_values.append(current_amplitude)
         time.sleep(0.5)
 
         # Output measurement
         osc.write(f':CHANnel{args.mdo_input_port_out}:DISPlay ON')
         osc.write(f':measure:source2 CH{args.mdo_input_port_out}')
-        out_freq_values[i] = float(osc.query(':measure:frequency?'))
-        out_amp_values[i] = float(osc.query(':measure:amplitude?'))
+        current_frequency_out = float(osc.query(':measure:frequency?'))
+        current_amplitude_out = float(osc.query(':measure:amplitude?'))
+        out_freq_values.append(current_frequency_out)
+        out_amp_values.append(current_amplitude_out)
         time.sleep(0.5)
 
         # Phase difference measurement:
-        osc.write(f':CHANnel{args.mdo_input_port_in}:DISPlay ON')
-        osc.write(f':CHANnel{args.mdo_input_port_out}:DISPlay ON')
-        osc.write(f':measure:source1 CH{args.mdo_input_port_in}') #eg CH1
-        osc.write(f':measure:source2 CH{args.mdo_input_port_out}') #eg CH2
-        phase_shift[i] = float(osc.query('measure:phase?'))
-        print(f'Phase difference: {phase_shift[i]}')
+        osc.write(f':measure:source1 CH{args.mdo_input_port_in}')  # e.g., CH1
+        osc.write(f':measure:source2 CH{args.mdo_input_port_out}')  # e.g., CH2
+        current_phase_shift = float(osc.query('measure:phase?'))
+        phase_shift.append(current_phase_shift)
+        print(f'Phase difference: {current_phase_shift}')
 
-        time.sleep((args.sweep_time / num_steps)/2)  # Wait for the next step
+        # Check if the sweep has completed
+        if current_frequency >= prev_frequency:
+            prev_frequency = current_frequency
+        else:
+            break  # Exit the loop if the frequency is lower than the previous
 
     print(f'Phase shift: {phase_shift}')
     # Sweep Off
