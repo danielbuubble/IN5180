@@ -42,13 +42,6 @@ if __name__ == "__main__":
     mfg.write(f'SOURCE{args.mfg_output_port}:SWEEP:STATE ON')  # Start sweep
     mfg.write(f'OUTPUT{args.mfg_output_port} ON')  # Enable output
 
-    # Wait for the sweep to complete
-    time.sleep(args.sweep_time)
-
-    # Turn off the output after one sweep
-    mfg.write(f'SOURCE{args.mfg_output_port}:SWEEP:STATE OFF')
-    mfg.write(f'OUTPUT{args.mfg_output_port} OFF')
-
     # Prepare arrays to store measurements
     num_steps = int(args.sweep_time * 10)  # Adjust as needed for sampling rate
     in_freq_values = np.empty(num_steps)
@@ -57,8 +50,10 @@ if __name__ == "__main__":
     out_amp_values = np.empty(num_steps)
     phase_shift = np.empty(num_steps)
 
+    highest_freq = 0
+    i = 0
     # Acquire data at each step
-    for i in range(num_steps):
+    while(1):
         # Wait for autoscale to finish
         osc.write(':AUTOSET')
         time.sleep((args.sweep_time / num_steps) / 2)
@@ -66,16 +61,18 @@ if __name__ == "__main__":
         # Set MDO measurements for input
         osc.write(f':CHANnel{args.mdo_input_port_in}:DISPlay ON')
         osc.write(f':measure:source1 CH{args.mdo_input_port_in}')
-        in_freq_values[i] = osc.query(':measure:frequency?')
-        in_amp_values[i] = osc.query(':measure:amplitude?')
+        in_freq_values[i] = osc.write(':measure:frequency?')
+        in_amp_values[i] = osc.write(':measure:amplitude?')
         print(f'Cnt: {i} Frequency: {in_freq_values[i]}')
         time.sleep(0.5)
+        if in_freq_values[i] > highest_freq:
+            highest_freq = in_freq_values[i]
 
         # Set MDO measurements for output
         osc.write(f':CHANnel{args.mdo_input_port_out}:DISPlay ON')
         osc.write(f':measure:source2 CH{args.mdo_input_port_out}')
-        out_freq_values[i] = osc.query(':measure:frequency?')
-        out_amp_values[i] = osc.query(':measure:amplitude?')
+        out_freq_values[i] = osc.write(':measure:frequency?')
+        out_amp_values[i] = osc.write(':measure:amplitude?')
 
         print(f'Amp_in: {in_amp_values[i]} Amp_out: {out_amp_values[i]}')
         time.sleep(0.5)
@@ -85,10 +82,14 @@ if __name__ == "__main__":
         osc.write(f':CHANnel{args.mdo_input_port_out}:DISPlay ON')
         osc.write(f':measure:source1 CH{args.mdo_input_port_in}')
         osc.write(f':measure:source2 CH{args.mdo_input_port_out}')
-        phase_shift[i] = osc.query('measure:phase?')
+        phase_shift[i] = osc.write('measure:phase?')
 
+        i += 1
         time.sleep((args.sweep_time / num_steps) / 2)  # Wait for the next step
 
+    # Turn off the output after one sweep
+    mfg.write(f'SOURCE{args.mfg_output_port}:SWEEP:STATE OFF')
+    mfg.write(f'OUTPUT{args.mfg_output_port} OFF')
     # Plot or process data
     plt.plot(in_freq_values, phase_shift, label="Phase Shift")
     plt.xlabel("Frequency (Hz)")
