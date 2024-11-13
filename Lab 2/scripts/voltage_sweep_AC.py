@@ -54,21 +54,21 @@ if __name__ == "__main__":
     # Acquire data at each step
     for i in range(num_steps):
         # Wait for autoscale to finish
-        osc.write('AUTORSET:MODe FITScreen')
+        osc.write('AUTOSet')
         time.sleep((args.sweep_time / num_steps)/2)
         print(f'Count: {i}')
         # Set MDO measurements for input
         osc.write(':CHANnel'+str(args.mdo_input_port_in)+':DISPlay ON')
         osc.write(':measure:source1 CH'+str(args.mdo_input_port_in))
-        in_freq_values[i] = osc.write(':measure:frequency?')
-        in_amp_values[i] = osc.write(':measure:amplitude?')
+        in_freq_values[i] = osc.query(':measure:frequency?')
+        in_amp_values[i] = osc.query(':measure:amplitude?')
         time.sleep(0.5)
 
         # Set MDO measurements for output
         osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
         osc.write(':measure:source2 CH'+str(args.mdo_input_port_out))
-        out_freq_values[i] = osc.write(':measure:frequency?')
-        out_amp_values[i] = osc.write(':measure:amplitude?')
+        out_freq_values[i] = osc.query(':measure:frequency?')
+        out_amp_values[i] = osc.query(':measure:amplitude?')
 
         print(f'Amp_in: {in_amp_values[i]} Amp_out: {out_amp_values[i]}')
         time.sleep(0.5)
@@ -78,7 +78,7 @@ if __name__ == "__main__":
         osc.write(':CHANnel'+str(args.mdo_input_port_out)+':DISPlay ON')
         osc.write(':measure:source1 CH'+str(args.mdo_input_port_in)) #eg CH1
         osc.write(':measure:source2 CH'+str(args.mdo_input_port_out)) #eg CH2
-        phase_shift[i] = osc.write('measure:phase?')
+        phase_shift[i] = osc.query('measure:phase?')
         
         time.sleep((args.sweep_time / num_steps)/2)  # Wait for the next step
 
