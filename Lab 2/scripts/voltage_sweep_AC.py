@@ -50,7 +50,7 @@ if __name__ == "__main__":
     mfg.write('source'+str(args.mfg_output_port)+':freq:start '+str(args.start_frequency))
     mfg.write('source'+str(args.mfg_output_port)+':freq:stop '+str(args.stop_frequency))
     mfg.write('source'+str(args.mfg_output_port)+':sweep:spacing log')
-    mfg.write('source'+str(args.mfg_output_port)+':sweep:time' +str(args.sweep_time))
+    mfg.write('source'+str(args.mfg_output_port)+':sweep:time ' +str(args.sweep_time))
     mfg.write('source'+str(args.mfg_output_port)+':sweep:source IMM')
     
     #mfg.write('source'+str(args.mfg_output_port)+':mark?')
