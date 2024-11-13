@@ -54,16 +54,16 @@ if __name__ == "__main__":
     for i in range(num_steps):
         # Set MDO measurements for input
         osc.write(f':MEASURE:SOURCE1 CH{args.mdo_input_port_in}')
-        in_freq_values[i] = float(osc.query(':measure:frequency?'))
-        in_amp_values[i] = float(osc.query(':MEASURE:AMPLITUDE?'))
+        in_freq_values[i] = osc.query(':measure:frequency?')
+        in_amp_values[i] = osc.query(':MEASURE:AMPLITUDE?')
 
         # Set MDO measurements for output
         osc.write(f':MEASURE:SOURCE2 CH{args.mdo_input_port_out}')
-        out_freq_values[i] = float(osc.query(':measure:frequency?'))
-        out_amp_values[i] = float(osc.query(':MEASURE:AMPLITUDE?'))
+        out_freq_values[i] = osc.query(':measure:frequency?')
+        out_amp_values[i] = osc.query(':MEASURE:AMPLITUDE?')
 
         # Measure phase shift
-        phase_shift[i] = float(osc.query(':MEASURE:PHASE?'))
+        phase_shift[i] = osc.query(':MEASURE:PHASE?')
         
         time.sleep(args.sweep_time / num_steps)  # Wait for the next step
 
