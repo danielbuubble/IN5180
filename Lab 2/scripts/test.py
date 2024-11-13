@@ -54,7 +54,7 @@ if (__name__=="__main__"):
         mfg.write('output'+str(args.mfg_output_port)+':load inf')
         #Set signal for mfg:
         mfg.write('source'+str(args.mfg_output_port)+':appl:sin '+str(x)+','+str(args.amplitude)+','+str(args.offset))
-        print('Cnt: '+str(i)+' Frequency: '+str(x))
+        print('Cnt: '+str(i))
         #Wait for valid output from the mfg:
         time.sleep(1)
 
@@ -82,6 +82,7 @@ if (__name__=="__main__"):
         osc.write(':measure:source1 CH'+str(args.mdo_input_port_in)) #eg CH1
         osc.write(':measure:source2 CH'+str(args.mdo_input_port_out)) #eg CH2
         phase_shift[i] = osc.write('measure:phase?')
+        print('Phase difference: '+str(phase_shift[i]))
         time.sleep(0.5)
         i = i + 1
     
